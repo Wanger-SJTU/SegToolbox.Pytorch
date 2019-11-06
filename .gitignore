@@ -2,4 +2,3 @@ out/
 test.py
 .vscode/
 *_pycache*
-configs/*.*

@@ -1,0 +1,64 @@
+DATADIR: /data/CH/data/PASCAL
+
+LOG_PERIOD: 10
+
+MODEL:
+  NUM_CLASSES: 21
+  MODEL_NAME: vgg_voc_nonlocal
+  BACKBONE: VGG
+  HEAD: nonlocal
+
+  BN_MOMENTUM: 0.9
+  BN_EPSILON: 1.0000001e-5
+  BN_INIT_GAMMA: 0.0
+  DROPOUT_RATE: 0.5
+
+TRAIN:
+  DATA_TYPE: train
+  BATCH_SIZE: 12
+  SHUFFLE: False
+  EVAL_PERIOD: 5000
+  DROPOUT_RATE: 0.5 #sparse training
+  CROP_SIZE: 224 # 112
+
+  
+
+TEST:
+  DATA_TYPE: val
+  BATCH_SIZE: 32
+  CROP_SIZE: 224 # 224
+
+  OUTPUT_NAME: val
+  DATASET_SIZE: 19761 
+  NUM_TEST_CLIPS: 30 
+
+SOLVER:
+  # 'step', 'steps_with_lrs', 'steps_with_relative_lrs', 'steps_with_decay'
+  LR_POLICY: 'steps_with_relative_lrs' 
+  BASE_LR: 0.005
+  STEP_SIZES: [150000, 100000, 50000]
+  LRS: [1, 0.1, 0.01, 0.001]
+  MAX_ITER: 300000 # 50000
+
+  WEIGHT_DECAY: 0.0001
+  WEIGHT_DECAY_BN: 0.0
+  MOMENTUM: 0.9
+  NESTEROV: True
+  SCALE_MOMENTUM: True
+
+  WARMUP:
+    WARMUP_ON: False
+    WARMUP_START_LR: 0.001
+    WARMUP_END_ITER: 2000
+
+CHECKPOINT:
+  DIR: ./out/checkpoints
+  CHECKPOINT_PERIOD: 10000
+
+TENSORBOARD:
+  DIR: ./out/tensorboard
+
+NONLOCAL:
+  USE_BN: True
+  USE_SCALE: True
+  USE_SOFTMAX: False
