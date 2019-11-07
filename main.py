@@ -3,7 +3,7 @@
 # @author bulbasaur
 # @description 
 # @created 2019-10-29T20:11:52.502Z+08:00
-# @last-modified 2019-11-07T13:39:13.905Z+08:00
+# @last-modified 2019-11-07T19:49:29.263Z+08:00
 #
 
 import os
@@ -188,7 +188,7 @@ def val(epoch, iteration):
         
     path = os.path.join(checkpoint_dir, "iou_res.txt")
     with open(path, 'a+', encoding='utf8') as f:
-        f.write("{}:{} iou:{}".format(epoch, iteration, iou/len(val_loader))) 
+        f.write("{}\t:{} \t \tiou:{}\n".format(epoch, iteration, iou/len(val_loader))) 
 
 if __name__ == "__main__":
     train()

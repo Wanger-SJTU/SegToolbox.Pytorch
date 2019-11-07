@@ -3,7 +3,7 @@
 # @author wanger
 # @description 
 # @created 2019-10-28T10:50:06.128Z+08:00
-# @last-modified 2019-11-04T21:46:15.538Z+08:00
+# @last-modified 2019-11-07T21:36:12.094Z+08:00
 #
 
 import torch.nn as nn
@@ -12,13 +12,13 @@ from torchvision.models import vgg16_bn
 from torchvision.models import vgg16
 
 class VGGFeatures(nn.Module):
-    def __init__(self, use_bn=True):
+    def __init__(self, cfg, use_bn=True):
         super(VGGFeatures, self).__init__()
         
         if use_bn:
-            features = list(vgg16_bn(pretrained=True).features)
+            features = list(vgg16_bn(pretrained=cfg.MODEL.PRETRAIN).features)
         else:
-            features = list(vgg16(pretrained=True).features)
+            features = list(vgg16(pretrained=cfg.MODEL.PRETRAIN).features)
         stages = []
         srt = 0
         for end in range(len(features)):

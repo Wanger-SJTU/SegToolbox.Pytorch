@@ -5,11 +5,13 @@ DATASET:
 
 MODEL:
   NUM_CLASSES: 21
-  MODEL_NAME: vgg_voc_fcn
+  MODEL_NAME: vgg_voc_fcn16s
   BACKBONE: VGG
-  HEAD: fcnhead
-  INCHANNEL: [256, 512, 512]
-  SCALES: [4, 8, 16]
+  HEAD: fcn16s
+  INCHANNEL: [64, 128, 256, 512, 512]
+  SCALES: [1, 2, 4, 8, 2] # upscale factor for each featuremap
+  USE_BN: True
+  PRETRAIN: True
   BN_MOMENTUM: 0.9
   MODE: bilinear
   BN_EPSILON: 1.0000001e-5

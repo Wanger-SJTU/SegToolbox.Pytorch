@@ -3,14 +3,15 @@
 # @author wanger
 # @description 
 # @created 2019-10-28T15:54:57.838Z+08:00
-# @last-modified 2019-10-31T21:13:31.540Z+08:00
+# @last-modified 2019-11-07T22:25:12.685Z+08:00
 #
 
 import torch.nn as nn
-
 from .backbone import VGGFeatures
 
-from .head.fcn import FCNhead
+from .head.fcn import FCN8s
+from .head.fcn import FCN16s
+from .head.fcn import FCN32s
 from .head.fcn import Classifier
 from .head.NonLocal import NonlocalGroup
 from .head.NonLocal import NonLocalPatch
@@ -23,7 +24,9 @@ backbones = {
 }
 
 heads = {
-    'fcnhead':FCNhead,
+    'fcn8s':FCN8s,
+    'fcn16s':FCN16s,
+    'fcn32s':FCN32s,
     'NonlocalGroup':NonlocalGroup,
     'NonLocalPatch':NonLocalPatch
 }
