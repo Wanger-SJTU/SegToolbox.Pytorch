@@ -20,7 +20,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+# code borrowed from 
+# https://github.com/facebookresearch/video-nonlocal-net
+# 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -37,6 +39,7 @@ __C.DEBUG = False
 __C.DATASET = AttrDict()
 __C.DATASET.NAME = ""
 __C.DATASET.DIR  = ""
+__C.DATASET.IGNOREIDX=-1
 
 # Training options
 __C.TRAIN = AttrDict()
@@ -96,10 +99,13 @@ __C.TEST.DATA_TYPE = ''
 __C.TEST.BATCH_SIZE = 64
 __C.TEST.SCALE = 256
 __C.TEST.CROP_SIZE = 224
+__C.TEST.SHUFFLE = False
 
 # Solver
 __C.SOLVER = AttrDict()
+__C.SOLVER.OPTIM = 'adam'
 __C.SOLVER.NESTEROV = True
+__C.SOLVER.MAX_ITER = 1e4
 __C.SOLVER.WEIGHT_DECAY = 0.0001
 __C.SOLVER.WEIGHT_DECAY_BN = 0.0001
 __C.SOLVER.MOMENTUM = 0.9
@@ -179,13 +185,12 @@ def assert_and_infer_cfg():
 def merge_dicts(dict_a, dict_b):
     from ast import literal_eval
     for key, value in dict_a.items():
-        if type(value) is dict:
-            value = AttrDict(value)
+       
         if key not in dict_b:
-            dict_b[key]= value
-            # raise KeyError('Invalid key in config file: {}'.format(key))
-        if type(value) is dict:
-            dict_a[key] = value 
+            #dict_b[key]= value
+            raise KeyError('Invalid key in config file: {}'.format(key))
+        if isinstance(value, dict):
+            value = AttrDict(value) 
         if isinstance(value, str):
             try:
                 value = literal_eval(value)
@@ -204,8 +209,8 @@ def merge_dicts(dict_a, dict_b):
                 merge_dicts(dict_a[key], dict_b[key])
             except BaseException:
                 raise Exception('Error under config key: {}'.format(key))
-        if isinstance(value, dict):
-            dict_b[key] = AttrDict(value)
+        # elif isinstance(value, dict):
+        #     dict_b[key] = AttrDict(value)
         else:
             dict_b[key] = value
 

@@ -1,3 +1,12 @@
+# -*- coding: UTF-8 -*-
+# collections.py
+# code borrowed from 
+# https://github.com/facebookresearch/video-nonlocal-net
+# 
+# @created 2019-10-29T10:36:50.585Z+08:00
+# @last-modified 2019-11-06T15:29:41.647Z+08:00
+#
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function

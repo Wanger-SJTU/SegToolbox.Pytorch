@@ -12,7 +12,7 @@ class Options():
     # self.parser.add_argument('--data', required=True, help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
     self.parser.add_argument('--gpu_ids', type=str, default='1', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
     self.parser.add_argument('--name', type=str, default='', help='')
-    self.parser.add_argument('--config', type=str, default='voc_vgg_fcn')
+    self.parser.add_argument('--config', type=str, default='./configs/voc_vgg_fcn.yaml')
     self.parser.add_argument('--ratio', type=float, default=1)
     self.initialized = True
   

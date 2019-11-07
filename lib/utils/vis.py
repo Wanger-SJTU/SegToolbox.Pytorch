@@ -23,9 +23,9 @@ class Visualizer(object):
         assert len(self.wins) >= len(data.keys())
         
         for key in data.keys():
-            assert isinstance(key,str)
+            assert isinstance(key, str)
             idx = self.wins_by_name[key]
-            title = key+': (epoch: %d, step: %d)' % (epoch,step)
+            title = key+': (epoch: %d, step: %d)' % (epoch, step)
             if not isinstance(data[key], list):
                 if isinstance(data[key], Image.Image):
                     data[key] = np.array(data[key].convert('RGB')).transpose(2,0,1)

@@ -334,3 +334,49 @@ class ToTensor:
         img = torch.from_numpy(img).float()
         lbl = torch.from_numpy(lbl).long()
         return img, lbl
+
+class ValToTensor:
+    def __call__(self, imgmap):
+        img,lbl, others = imgmap
+        if isinstance(img, Image.Image):
+            img = np.array(img)
+            lbl = np.array(lbl)
+        if len(img.shape) == 2:
+            img = img[np.newaxis,:,:]
+            img = np.concatenate([img,img,img], axis=0)
+        if img.shape[-1] == 3:
+            img = img.transpose(2,0,1)
+        img = torch.from_numpy(img).float()
+        lbl = torch.from_numpy(lbl).long()
+        others = torch.from_numpy(np.array(others)).long()
+        return img, lbl, others
+
+class ValPadding:
+    def __init__(self, scale):
+        self.scale = scale
+    def __call__(self, imgmap):
+        img,lbl = imgmap
+
+        left,right,top,down = 0, 0, 0, 0
+        if isinstance(img, Image.Image):
+            shape = img.size
+        elif isinstance(img, np.ndarray):
+            shape = img.shape
+            try:
+                img = Image.fromarray(img)
+            except e:
+                raise Exception(e)
+        else:
+            raise ValueError("Not support type {}".format(type(img)))
+        row = shape[0] % self.scale
+        row = 0 if row == 0 else self.scale - row #+ 1
+        col = shape[1] % self.scale
+        col = 0 if col == 0 else self.scale - col # + 1
+
+        left = random.randint(0, row)
+        top  = random.randint(0, top)
+        right = row - left
+        down  = col - top
+        return ImageOps.expand(img, border=(left, top, right, down), fill=0), \
+               ImageOps.expand(lbl, border=(left, top, right, down), fill=0), \
+               (left, right, top, down)

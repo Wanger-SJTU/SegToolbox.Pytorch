@@ -3,7 +3,7 @@
 # @author wanger
 # @description 
 # @created 2019-10-31T10:22:36.005Z+08:00
-# @last-modified 2019-11-05T14:49:22.299Z+08:00
+# @last-modified 2019-11-07T11:23:56.733Z+08:00
 #
 
 
@@ -72,3 +72,8 @@ def torch_onehot(predicted, num_classes, ignore_index=255):
         onehot=torch.eye(int(num_classes))[predicted.long()]
         onehot = onehot.permute(0, 3, 1, 2)
         return onehot.cuda()
+
+
+
+def getLoss(cfg):
+    pass

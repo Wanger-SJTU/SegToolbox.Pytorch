@@ -3,7 +3,7 @@
 # @author wanger
 # @description 
 # @created 2019-10-28T15:52:24.054Z+08:00
-# @last-modified 2019-11-05T16:50:25.657Z+08:00
+# @last-modified 2019-11-06T21:37:51.578Z+08:00
 #
 
 import torch
@@ -32,7 +32,8 @@ class FCNhead(nn.Module):
     def forward(self, *args):
         res = None
         for idx, (feature, scale) in enumerate(zip(args[-len(self.scale):], self.scale)):
-            tmp = self.convs[idx](F.interpolate(feature, scale_factor=scale, mode=self.mode) )
+            tmp = self.convs[idx](F.interpolate(feature, scale_factor=scale, 
+                                                mode=self.mode, align_corners=False))
             if res is None:
                 res = tmp
             else:

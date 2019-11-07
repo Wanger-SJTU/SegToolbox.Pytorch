@@ -4,8 +4,8 @@ from torchvision.datasets.voc import VOCSegmentation
 from .ade2k import ADE2K
 
 datasets = {
-    'voc':VOCSegmentation,
-    'ade2k':ADE2K
+    'voc'   :VOCSegmentation,
+    'ade2k' :ADE2K
 }
 
 __all__ = ["getDataset"]
