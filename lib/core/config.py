@@ -30,6 +30,8 @@ from __future__ import unicode_literals
 
 from .collections import AttrDict
 
+__all__ = ['config', 'cfg_from_file', 'cfg_from_list']
+
 __C = AttrDict()
 config = __C
 
@@ -41,6 +43,7 @@ __C.DATASET.NAME = ""
 __C.DATASET.DIR  = ""
 __C.DATASET.IGNOREIDX=-1
 
+
 # Training options
 __C.TRAIN = AttrDict()
 __C.TRAIN.PARAMS_FILE = ''
@@ -49,6 +52,7 @@ __C.TRAIN.BATCH_SIZE = 64
 __C.TRAIN.SHUFFLE = False
 # scale/ar augmeantion
 __C.TRAIN.CROP_SIZE = 224
+__C.TRAIN.LODEMEMORY = False
 
 # Number of iterations after which model should be tested on test/val data
 __C.TRAIN.EVAL_PERIOD = 1000
@@ -61,11 +65,12 @@ __C.MODEL = AttrDict()
 __C.MODEL.NUM_CLASSES = -1
 __C.MODEL.MODEL_NAME = ''
 
-# vgg
+# model
 __C.MODEL.BACKBONE = ""
 __C.MODEL.HEAD=""
 __C.MODEL.INCHANNEL=[]
 __C.MODEL.SCALES=[]
+__C.MODEL.FACTOR=1
 __C.MODEL.MODE=""
 __C.MODEL.USE_DROPOUT=False
 __C.MODEL.DROPOUT_RATE=0.5
@@ -102,7 +107,7 @@ __C.TEST.BATCH_SIZE = 64
 __C.TEST.SCALE = 256
 __C.TEST.CROP_SIZE = 224
 __C.TEST.SHUFFLE = False
-
+__C.TEST.LODEMEMORY = False
 # Solver
 __C.SOLVER = AttrDict()
 __C.SOLVER.OPTIM = 'adam'
@@ -142,6 +147,10 @@ __C.CHECKPOINT.DIR = './out/checkpoints/'
 # Checkpoint options
 __C.TENSORBOARD = AttrDict()
 __C.TENSORBOARD.DIR = './out/tensorboard/'
+__C.TENSORBOARD.HIST = True
+
+__C.LOG = AttrDict()
+__C.LOG.DIR = './out/log/'
 
 # Non-local Block
 __C.NONLOCAL = AttrDict()
@@ -154,12 +163,27 @@ __C.NONLOCAL.BN_EPSILON = 1.0000001e-5
 __C.NONLOCAL.BN_INIT_GAMMA = 0.0
 
 
+__C.DATALOADER = AttrDict()
+__C.DATALOADER.num_workers = 4
+__C.DATALOADER.pin_memory = True
 
-__C.NUM_GPUS = 8
 
 def print_cfg():
-    import pprint
-   
+    # import logging
+    import time
+    import os
+    file_name = os.path.join(__C.LOG.DIR,
+                             __C.MODEL.MODEL_NAME,
+            __C.MODEL.MODEL_NAME+"_"+\
+        time.strftime(r"%Y_%m_%d_%H_%M", time.localtime())+'.log')
+    if not os.path.exists(os.path.dirname(file_name)):
+        os.makedirs(os.path.dirname(file_name))
+
+    with open(file_name, 'a' ,encoding='utf8') as f:
+        f.write('------------ Configs -------------\n')
+        for k, v in sorted(__C.items()):
+            f.write('%s: %s \n' % (str(k), str(v)))
+        f.write('------------ End -------------\n')
 
 def assert_and_infer_cfg():
 
@@ -223,7 +247,7 @@ def cfg_from_file(filename):
     with open(filename, 'r') as fopen:
         yaml_config = AttrDict(yaml.load(fopen, Loader=yaml.FullLoader))
     merge_dicts(yaml_config, __C)
-
+    print_cfg()
 
 def cfg_from_list(args_list):
     """Set config keys via list (e.g., from command line)."""

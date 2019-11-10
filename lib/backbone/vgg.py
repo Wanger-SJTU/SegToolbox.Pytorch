@@ -3,7 +3,7 @@
 # @author wanger
 # @description 
 # @created 2019-10-28T10:50:06.128Z+08:00
-# @last-modified 2019-11-07T21:36:12.094Z+08:00
+# @last-modified 2019-11-08T21:18:36.906Z+08:00
 #
 
 import torch.nn as nn
@@ -23,8 +23,8 @@ class VGGFeatures(nn.Module):
         srt = 0
         for end in range(len(features)):
             if isinstance(features[end], nn.MaxPool2d):
-                stages.append(features[srt:end])
-                srt = end
+                stages.append(features[srt:end+1])
+                srt = end+1
         self.stages1 = nn.Sequential(*stages[0])
         self.stages2 = nn.Sequential(*stages[1])
         self.stages3 = nn.Sequential(*stages[2])

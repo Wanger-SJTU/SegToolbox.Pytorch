@@ -22,15 +22,14 @@ class Options():
     opt = self.parser.parse_args()
 
     os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu_ids
-    assert 0 < opt.ratio <= 1
+    assert 0 <= opt.ratio <= 1
     args = vars(opt)
     print('------------ Options -------------')
     for k, v in sorted(args.items()):
       print('%s: %s' % (str(k), str(v)))
     print('-------------- End ----------------')
 
-    self.opt = opt
-    
+    self.opt = opt 
     return self.opt
 
 if __name__ == '__main__':

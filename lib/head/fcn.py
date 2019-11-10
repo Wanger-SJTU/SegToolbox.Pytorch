@@ -3,7 +3,7 @@
 # @author wanger
 # @description 
 # @created 2019-10-28T15:52:24.054Z+08:00
-# @last-modified 2019-11-07T22:37:40.810Z+08:00
+# @last-modified 2019-11-08T16:10:06.282Z+08:00
 #
 
 import torch
@@ -43,7 +43,7 @@ class FCN8s(nn.Module):
         self.upscores = nn.ModuleList(upscores)
         
     def forward(self, *args):
-        *_,f3,f4,f5 = args # 1/4 1/8 1/16
+        *_,f3,f4,f5 = args # 1/8 1/16 1/32
         f5 = self.upscores[-1](self.score_fr(self.fc(f5)))
         f4 = self.score_pool4(f4)
         f3 = self.score_pool3(f3)
@@ -77,7 +77,7 @@ class FCN16s(nn.Module):
         
         
     def forward(self, *args):
-        *_, p4,p5 = args
+        *_, p4,p5 = args #1/16  1/32 if vgg
         feature = self.upscores[-1](self.score_fr(self.fc(p5)))
         score_pool4 = self.score_pool4(p4)
         return self.upscores[-2](feature+score_pool4)

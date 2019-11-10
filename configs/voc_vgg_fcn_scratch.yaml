@@ -1,18 +1,19 @@
 DATASET: 
   NAME: voc
-  DIR: /home/amax/data/PASCAL
+  DIR: /data/CH/data/PASCAL
   IGNOREIDX: 21
+  
 
 MODEL:
   NUM_CLASSES: 21
-  MODEL_NAME: vgg_voc_fcn16s_nobn
+  MODEL_NAME: vgg_voc_fcn16s_nobn_scratch
   BACKBONE: VGG
   HEAD: fcn16s
   INCHANNEL: [64, 128, 256, 512, 512]
   SCALES: [1, 2, 4, 16, 2] # upscale factor for each featuremap
   FACTOR: 32 # upscale factor for each featuremap
   USE_BN: False
-  PRETRAIN: True
+  PRETRAIN: False
   BN_MOMENTUM: 0.9
   MODE: bilinear
   BN_EPSILON: 1.0000001e-5
@@ -27,19 +28,20 @@ TRAIN:
   DROPOUT_RATE: 1.0
   EVAL_PERIOD: 1000
   CROP_SIZE: 320 # 112
-  
+  LODEMEMORY: True
 TEST:
   DATA_TYPE: val
   BATCH_SIZE: 1
   CROP_SIZE: 224
   SHUFFLE: False
+  LODEMEMORY: False
 
 SOLVER:
   # 'step', 'steps_with_lrs', 'steps_with_relative_lrs', 'steps_with_decay, 'fixed''
   OPTIM: 'Adam'
   LR_POLICY: 'fixed' 
-  BASE_LR: 0.0001
-  MAX_ITER: 15000 # 50000
+  BASE_LR: 0.01
+  MAX_ITER: 50000 # 50000
   WEIGHT_DECAY: 0.0001
   WEIGHT_DECAY_BN: 0.0
   MOMENTUM: 0.9
@@ -47,8 +49,8 @@ SOLVER:
   SCALE_MOMENTUM: True
 
   WARMUP:
-    WARMUP_ON: False
-    WARMUP_START_LR: 0.001
+    WARMUP_ON: True
+    WARMUP_START_LR: 0.0001
     WARMUP_END_ITER: 2000
 
 CHECKPOINT:

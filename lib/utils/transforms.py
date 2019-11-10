@@ -8,6 +8,8 @@ import collections
 from PIL import ImageOps, Image, ImageFilter
 import numpy as np
 
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class RandomPadding:
     def __init__(self, target_Size):

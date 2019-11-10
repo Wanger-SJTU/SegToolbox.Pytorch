@@ -1,6 +1,7 @@
 
+import pdb
 
-from torchvision.datasets.voc import VOCSegmentation
+from .voc import VOCSegmentation
 from .ade2k import ADE2K
 
 datasets = {
@@ -14,8 +15,17 @@ def getDataset(cfg,
                transform=None,
                target_transform=None,
                transforms=None):
-    return datasets[cfg.DATASET.NAME](root=cfg.DATASET.DIR,
+    if image_set == 'train' or image_set == 'trainval' :
+        return datasets[cfg.DATASET.NAME](root=cfg.DATASET.DIR,
                                       image_set=image_set,
                                       transform=transform,
                                       target_transform=target_transform,
-                                      transforms=transforms)
+                                      transforms=transforms,
+                                      loadMemory=cfg.TRAIN.LODEMEMORY)
+    else:
+        return datasets[cfg.DATASET.NAME](root=cfg.DATASET.DIR,
+                                      image_set=image_set,
+                                      transform=transform,
+                                      target_transform=target_transform,
+                                      transforms=transforms,
+                                      loadMemory=cfg.TEST.LODEMEMORY)
