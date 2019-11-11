@@ -3,7 +3,7 @@
 # @author wanger
 # @description 
 # @created 2019-11-06T13:39:41.110Z+08:00
-# @last-modified 2019-11-10T21:19:41.730Z+08:00
+# @last-modified 2019-11-10T22:05:21.055Z+08:00
 #
 
 import pdb
@@ -61,7 +61,7 @@ class BaseDataset(dataset.Dataset):
         imgmap = (img, target)
         if self.transforms is not None:
             imgmap = self.transforms(imgmap) 
-        return imgmap, self.masks[index]
+        return imgmap#, self.masks[index]
 
     def __len__(self):
         return len(self.images)

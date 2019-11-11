@@ -12,9 +12,9 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class RandomPadding:
-    def __init__(self, target_Size):
+    def __init__(self, target_Size, index=0):
         self.target_Size = target_Size
-
+        self.index = index
     def __call__(self, imgmap):
         img,lbl = imgmap
         left,right,top,down = 0, 0, 0, 0
@@ -33,12 +33,13 @@ class RandomPadding:
         right = self.target_Size[0]-shape[0] - left
         down  = self.target_Size[1]-shape[1] - top
         return ImageOps.expand(img, border=(left, top, right, down), fill=0), \
-               ImageOps.expand(lbl, border=(left, top, right, down), fill=0)
+               ImageOps.expand(lbl, border=(left, top, right, down), fill=self.index)
 
 class RandomCropPad:
     '''
     '''
-    def __init__(self, size):
+    def __init__(self, size, index=0):
+        self.index = index
         if isinstance(size, numbers.Number):
             self.size = (size, size)
         elif isinstance(size, collections.Iterable) and len(size)==2:
@@ -54,15 +55,15 @@ class RandomCropPad:
         if shape[0] > self.size[0]:
             rc = RandomCrop((self.size[0], shape[1]))
             imgmap = rc(imgmap)
-            rp = RandomPadding(self.size)
+            rp = RandomPadding(self.size, self.index)
             return rp(imgmap)
         if shape[1] > self.size[1]:
             rc = RandomCrop((shape[0], self.size[1]))
             imgmap = rc(imgmap)
-            rp = RandomPadding(self.size)
+            rp = RandomPadding(self.size,self.index)
             return rp(imgmap)
         else:
-            rp = RandomPadding(self.size)
+            rp = RandomPadding(self.size,self.index)
             return rp(imgmap)
 
 class Scale:
@@ -354,8 +355,9 @@ class ValToTensor:
         return img, lbl, others
 
 class ValPadding:
-    def __init__(self, scale):
+    def __init__(self, scale, index=0):
         self.scale = scale
+        self.index = index
     def __call__(self, imgmap):
         img,lbl = imgmap
 
@@ -380,5 +382,5 @@ class ValPadding:
         right = row - left
         down  = col - top
         return ImageOps.expand(img, border=(left, top, right, down), fill=0), \
-               ImageOps.expand(lbl, border=(left, top, right, down), fill=0), \
+               ImageOps.expand(lbl, border=(left, top, right, down), fill=self.index), \
                (left, right, top, down)

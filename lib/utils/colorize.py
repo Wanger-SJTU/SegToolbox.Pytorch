@@ -228,7 +228,7 @@ def index2rgb(indexed, palette='voc'):
     w, h = indexed.shape
     rgb_img = np.zeros((w, h, 3))
 
-    for i in range(len(label_info[palette])):
+    for i in id2label.keys():
         mask = indexed == i
         rgb_img[mask] = id2label[i].color
     return rgb_img.transpose(2,0,1)

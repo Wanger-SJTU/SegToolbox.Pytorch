@@ -3,7 +3,7 @@
 # @author bulbasaur
 # @description 
 # @created 2019-10-29T20:11:52.502Z+08:00
-# @last-modified 2019-11-10T20:51:29.341Z+08:00
+# @last-modified 2019-11-11T16:30:43.412Z+08:00
 #
 
 import os
@@ -71,11 +71,12 @@ torch.backends.cudnn.benchmark = True
 
 # data transformation
 val_transforms = tv.transforms.Compose([
-    transforms.ValPadding(cfg.MODEL.FACTOR),
+    transforms.ValPadding(cfg.MODEL.FACTOR, cfg.DATASET.IGNOREIDX),
     transforms.ValToTensor()
 ])
+
 train_transforms = tv.transforms.Compose([
-    transforms.RandomCropPad(cfg.TRAIN.CROP_SIZE),
+    transforms.RandomCropPad(cfg.TRAIN.CROP_SIZE, cfg.DATASET.IGNOREIDX),
     transforms.ToTensor()
 ])
 
@@ -109,7 +110,7 @@ def train():
             new_lbl = reMaskLabel(item[1].numpy().copy(), opts.ratio, cfg.DATASET.IGNOREIDX)
             new_lbl = torch.from_numpy(new_lbl).long().cuda()
             lbl_true = item[1]
-            
+            # import pdb;pdb.set_trace()
             probs = model(img)
             optim.zero_grad()
             loss = CrossEntropyLoss2d(probs, new_lbl, cfg.DATASET.IGNOREIDX)
@@ -200,7 +201,7 @@ def val(epoch):
         f.write("{}\t:{} \t  iou:{} \n".format(epoch, writer.global_step, iou/len(val_loader))) 
 
 def warmUpModel(): 
-    epoches = math.ceil(cfg.SOLVER.WARMUP.WARMUP_END_ITER/len(train_loader))
+    epoches = cfg.SOLVER.WARMUP.WARMUP_EPOCH
     adjustLearningRate(optim, cfg.SOLVER.WARMUP.WARMUP_START_LR)
     for epoch in tqdm.tqdm(range(epoches), total=epoches, ncols=80):
         loader = tqdm.tqdm(train_loader, total=len(train_loader), 
@@ -241,8 +242,8 @@ def warmUpModel():
             #if writer.global_step % 1 == 0:
                 val(epoch)
                 model.train()
-            if writer.global_step > cfg.SOLVER.WARMUP.WARMUP_END_ITER:
-                break
             
 if __name__ == "__main__":
     train()
+    # val(0)
+    writer.close()

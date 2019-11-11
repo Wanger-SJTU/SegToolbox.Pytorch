@@ -3,7 +3,7 @@
 # @author wanger
 # @description 
 # @created 2019-10-28T15:54:57.838Z+08:00
-# @last-modified 2019-11-10T20:25:27.275Z+08:00
+# @last-modified 2019-11-11T16:18:41.684Z+08:00
 #
 
 import torch.nn as nn
@@ -42,7 +42,8 @@ class SegModel(nn.Module):
         self.writer = writer
     def forward(self, x):
         features = self.features(x)
-        if self.training and self.opts.TENSORBOARD.HIST and self.writer is not None:
+        if self.training and self.opts.TENSORBOARD.HIST and \
+            self.writer is not None:
             variable_summaries(self.writer, *features)
         return self.head(*features)
 

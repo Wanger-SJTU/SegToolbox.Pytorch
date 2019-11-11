@@ -22,15 +22,17 @@ class MySummaryWriter(SummaryWriter):
         self.global_step += 1
 
     def variable_summaries(self, tag:str, name:str, var):
+        if self.global_step % 500 != 0:
+            return
         self.add_histogram(name, var)
         mean = var.mean()
         self.add_scalar(tag+'/mean/' + name, var.mean()) 
         stddev = torch.sqrt(torch.mean(torch.sqrt(var - mean)))
         self.add_scalar(tag+'/stddev/' + name, stddev)
-        
-    def add_scalar(self, tag, scalar_value, walltime=None):
+
+    def add_scalar(self, tag, scalar_value, iteration=None, walltime=None):
         super(MySummaryWriter, self).add_scalar(tag, 
-                scalar_value, self.global_step, walltime)
+                scalar_value, iteration or self.global_step, walltime)
 
     def add_scalars(self, main_tag, tag_scalar_dict, walltime=None):
         super(MySummaryWriter, self).add_scalars(main_tag, 

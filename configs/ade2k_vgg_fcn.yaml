@@ -1,11 +1,11 @@
 DATASET: 
-  NAME: voc
-  DIR: /data/CH/data/
-  IGNOREIDX: 21
+  NAME: ade2k
+  DIR: /data/CH/data/ADEChallengeData2016
+  IGNOREIDX: 255
 
 MODEL:
-  NUM_CLASSES: 21
-  MODEL_NAME: vgg_voc_fcn16s_nobn
+  NUM_CLASSES: 150
+  MODEL_NAME: vgg_ade2k_fcn16s_nobn
   BACKBONE: VGG
   HEAD: fcn16s
   INCHANNEL: [64, 128, 256, 512, 512]
@@ -26,7 +26,7 @@ TRAIN:
   SHUFFLE: True
   DROPOUT_RATE: 1.0
   EVAL_PERIOD: 1000
-  CROP_SIZE: 320 # 112
+  CROP_SIZE: 480 # 112
   
 TEST:
   DATA_TYPE: val
@@ -48,8 +48,8 @@ SOLVER:
 
   WARMUP:
     WARMUP_ON: False
-    WARMUP_START_LR: 0.001
-    WARMUP_END_ITER: 2000
+    WARMUP_START_LR: 0.0001
+    WARMUP_EPOCH: 5
 
 CHECKPOINT:
   CHECKPOINT_MODEL: False

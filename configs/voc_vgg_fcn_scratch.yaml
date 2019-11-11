@@ -2,8 +2,6 @@ DATASET:
   NAME: voc
   DIR: /data/CH/data/PASCAL
   IGNOREIDX: 21
-  
-
 MODEL:
   NUM_CLASSES: 21
   MODEL_NAME: vgg_voc_fcn16s_nobn_scratch
@@ -28,7 +26,7 @@ TRAIN:
   DROPOUT_RATE: 1.0
   EVAL_PERIOD: 1000
   CROP_SIZE: 320 # 112
-  LODEMEMORY: True
+  LODEMEMORY: False
 TEST:
   DATA_TYPE: val
   BATCH_SIZE: 1
@@ -40,18 +38,21 @@ SOLVER:
   # 'step', 'steps_with_lrs', 'steps_with_relative_lrs', 'steps_with_decay, 'fixed''
   OPTIM: 'Adam'
   LR_POLICY: 'fixed' 
-  BASE_LR: 0.01
+  BASE_LR: 0.1
   MAX_ITER: 50000 # 50000
-  WEIGHT_DECAY: 0.0001
+  WEIGHT_DECAY: 0.001
   WEIGHT_DECAY_BN: 0.0
   MOMENTUM: 0.9
   NESTEROV: True
   SCALE_MOMENTUM: True
 
   WARMUP:
-    WARMUP_ON: True
+    WARMUP_ON: False
     WARMUP_START_LR: 0.0001
-    WARMUP_END_ITER: 2000
+    WARMUP_EPOCH: 5
+
+TENSORBOARD:
+  HIST: False
 
 CHECKPOINT:
   CHECKPOINT_MODEL: False
