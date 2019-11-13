@@ -2,8 +2,8 @@ DATADIR: /data/CH/data/PASCAL
 
 MODEL:
   NUM_CLASSES: 21
-  MODEL_NAME: vgg_voc_fcn
-  BACKBONE: VGG
+  MODEL_NAME: resnet18_voc_fcn
+  BACKBONE: resnet18
   HEAD: fcnhead
   INCHANNEL: [256, 512, 512]
   SCALES: [4, 8, 16]

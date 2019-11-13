@@ -4,15 +4,20 @@ A clean pipline for Semantic Segmentation Task
 
 ## Model
 - [x]  VGG-based FCN
+- [x]  resNet
+- [x]  nonlocal
 
 **TODO**
 1. more backbone net
-2. nonlocal and etc model
 
 ## Dataset 
 - [x] VOC2012
 - [x] ADE2K
-- [ ] CityScapes
+- [x] CityScapes
+
+> At the root of the dataset, there should be a txt file named train.txt or val.txt
+
+
 
 ## features
 

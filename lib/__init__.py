@@ -3,19 +3,13 @@
 # @author wanger
 # @description 
 # @created 2019-10-28T15:54:57.838Z+08:00
-# @last-modified 2019-11-11T16:18:41.684Z+08:00
+# @last-modified 2019-11-13T11:48:53.125Z+08:00
 #
 
 import torch.nn as nn
-from .backbone import VGGFeatures
 
-from .head.fcn import FCN8s
-from .head.fcn import FCN16s
-from .head.fcn import FCN32s
-from .head.fcn import Classifier
-from .head.NonLocal import NonlocalGroup
-from .head.NonLocal import NonLocalPatch
-
+from .head import *
+from .backbone import *
 from .utils.misc import variable_summaries
 
 __all__ = ["createSegModel"]
@@ -28,9 +22,7 @@ backbones = {
 heads = {
     'fcn8s':FCN8s,
     'fcn16s':FCN16s,
-    'fcn32s':FCN32s,
-    'NonlocalGroup':NonlocalGroup,
-    'NonLocalPatch':NonLocalPatch
+    'fcn32s':FCN32s
 }
 
 class SegModel(nn.Module):
@@ -49,7 +41,7 @@ class SegModel(nn.Module):
 
 def variable_summaries(writer, *features):
     for i,f in enumerate(features):
-        writer.variable_summaries("train", "featuremap"+str(i), f)
+        writer.variable_summaries("hist", "featuremap"+str(i), f)
 
 def createSegModel(cfg, writer=None):
     return SegModel(cfg, writer)
