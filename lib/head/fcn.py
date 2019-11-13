@@ -3,21 +3,12 @@
 # @author wanger
 # @description 
 # @created 2019-10-28T15:52:24.054Z+08:00
-# @last-modified 2019-11-08T16:10:06.282Z+08:00
+# @last-modified 2019-11-14T01:05:26.640Z+08:00
 #
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-class Classifier(nn.Module):
-    def __init__(self, cfg):
-        super(Classifier, self).__init__()
-        inChannels = sum(cfg.MODEL.INCHANNLES)
-        self.conv = nn.Conv2d(inChannels, num_class, 3, 1, 1)
-
-    def forward(self, x):
-        return self.conv(x)
 
 class FCN8s(nn.Module):
     def __init__(self, cfg):

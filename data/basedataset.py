@@ -3,7 +3,7 @@
 # @author wanger
 # @description 
 # @created 2019-11-06T13:39:41.110Z+08:00
-# @last-modified 2019-11-10T22:05:21.055Z+08:00
+# @last-modified 2019-11-14T00:59:42.392Z+08:00
 #
 
 import pdb
@@ -24,7 +24,8 @@ class BaseDataset(dataset.Dataset):
                  transform=None,
                  target_transform=None,
                  transforms=None,
-                 loadMemory=False):
+                 loadMemory=False,
+                 auxiliaryLoss = False):
         super(BaseDataset, self).__init__()
         assert image_set in ("train", "val", "trainval")
         self.root = root
@@ -34,6 +35,7 @@ class BaseDataset(dataset.Dataset):
         self.loadMemory = loadMemory
         self.images = []
         self.masks  = []
+        self.auxiliaryLoss = auxiliaryLoss
         
         assert (len(self.images) == len(self.masks))
 
@@ -60,7 +62,12 @@ class BaseDataset(dataset.Dataset):
         
         imgmap = (img, target)
         if self.transforms is not None:
-            imgmap = self.transforms(imgmap) 
+            imgmap = self.transforms(imgmap)
+        
+        if self.auxiliaryLoss:
+            cls_lbl = imgmap[1].unique()
+            cls_lbl = cls_lbl[:-1] if 255 in cls_lbl else cls_lbl
+            return imgmap, cls_lbl
         return imgmap#, self.masks[index]
 
     def __len__(self):

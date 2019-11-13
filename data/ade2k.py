@@ -3,7 +3,7 @@
 # @author wanger
 # @description 
 # @created 2019-11-05T19:39:10.854Z+08:00
-# @last-modified 2019-11-11T15:03:04.412Z+08:00
+# @last-modified 2019-11-14T01:00:57.669Z+08:00
 #
 
 import os
@@ -19,9 +19,12 @@ class ADE2K(BaseDataset):
                  transform=None,
                  target_transform=None,
                  transforms=None,
-                 loadMemory=False):
+                 loadMemory=False,
+                 auxiliaryLoss):
         super(ADE2K, self).__init__(root, image_set, transform, 
-                                    target_transform, transforms, loadMemory)
+                                    target_transform, transforms, 
+                                    loadMemory,auxiliaryLoss)
+                                    
         assert image_set in ("train", "val")
         
         dataset_file = os.path.join(root, image_set)+'.txt'

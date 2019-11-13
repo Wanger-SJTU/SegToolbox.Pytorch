@@ -3,7 +3,7 @@
 # @author bulbasaur
 # @description 
 # @created 2019-10-29T20:11:52.502Z+08:00
-# @last-modified 2019-11-11T16:30:43.412Z+08:00
+# @last-modified 2019-11-13T13:39:14.806Z+08:00
 #
 
 import os
@@ -28,7 +28,6 @@ from lib.utils.vis import Visualizer
 from lib.utils.colorize import index2rgb
 from lib.utils.misc import MySummaryWriter
 from lib.utils.metrics import label_accuracy_score
-from torch.utils.tensorboard import SummaryWriter
 
 # configs initialization
 opts = Options()

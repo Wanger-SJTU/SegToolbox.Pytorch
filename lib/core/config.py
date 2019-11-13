@@ -91,6 +91,21 @@ __C.MODEL.BN_INIT_GAMMA = 1.0
 # when fine-tuning with bn frozen, we turn a bn layer into affine
 __C.MODEL.USE_AFFINE = False
 
+# Non-local Block
+__C.MODEL.NONLOCAL = AttrDict()
+__C.MODEL.NONLOCAL.USE = False
+__C.MODEL.NONLOCAL.DIM =  2 # 1D,2D,3D version
+__C.MODEL.NONLOCAL.TYPE= 'DotProduct' # DotProduct,LocalGaussian,LocalConcatenation,EmbeddedGaussian
+
+__C.MODEL.NONLOCAL.USE_SOFTMAX = True
+__C.MODEL.NONLOCAL.USE_BN = True
+__C.MODEL.NONLOCAL.USE_AFFINE = False
+
+__C.MODEL.NONLOCAL.BN_MOMENTUM = 0.9
+__C.MODEL.NONLOCAL.BN_EPSILON = 1.0000001e-5
+__C.MODEL.NONLOCAL.BN_INIT_GAMMA = 0.0
+
+
 # for ResNet or ResNeXt only
 __C.RESNETS = AttrDict()
 __C.RESNETS.NUM_GROUPS = 1
@@ -101,9 +116,8 @@ __C.RESNETS.TRANS_FUNC = 'bottleneck_transformation'
 __C.RESNETS.ZERO_INIT_RESIDUAL=False
 __C.RESNETS.DEEP_BASE=True # trick in PSPnet
 __C.RESNETS.GROUPS=1
-__C.RESNETS.WIDTH_PER_GROUP=64
 __C.RESNETS.REPLACE_STRIDE_WITH_DILATION=None
-__C.RESNETS.NORM_LAYER=None
+__C.RESNETS.NORM_LAYER = None
 
 # Test
 __C.TEST = AttrDict()
@@ -158,15 +172,7 @@ __C.TENSORBOARD.HIST = True
 __C.LOG = AttrDict()
 __C.LOG.DIR = './out/log/'
 
-# Non-local Block
-__C.NONLOCAL = AttrDict()
-__C.NONLOCAL.USE_SOFTMAX = True
-__C.NONLOCAL.USE_BN = True
-__C.NONLOCAL.USE_AFFINE = False
 
-__C.NONLOCAL.BN_MOMENTUM = 0.9
-__C.NONLOCAL.BN_EPSILON = 1.0000001e-5
-__C.NONLOCAL.BN_INIT_GAMMA = 0.0
 
 
 __C.DATALOADER = AttrDict()

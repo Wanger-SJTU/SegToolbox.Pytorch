@@ -19,21 +19,25 @@ from .non_local_embedded_gaussian import NONLocalBlock1D as NonlocalEmbeddedGaus
 from .non_local_embedded_gaussian import NONLocalBlock2D as NonlocalEmbeddedGaussian2D
 from .non_local_embedded_gaussian import NONLocalBlock3D as NonlocalEmbeddedGaussian3D
 
-__all__ = [
-            'FCN8s',
-            'FCN16s',
-            'FCN32s',
-'NonlocalDotProduct1D',
-'NonlocalDotProduct2D',
-'NonlocalDotProduct3D',
-'NonlocalLocalGaussian1D',
-'NonlocalLocalGaussian2D',
-'NonlocalLocalGaussian3D',
-'NonlocalLocalConcatenation1D',
-'NonlocalLocalConcatenation2D',
-'NonlocalLocalConcatenation3D',
-'NonlocalEmbeddedGaussian1D',
-'NonlocalEmbeddedGaussian2D',
-'NonlocalEmbeddedGaussian3D'
+from .PSPNet import PSPHead
 
-          ]
+__all__ = ['heads']
+
+heads = {
+'fcn8s':FCN8s,
+'fcn16s':FCN16s,
+'fcn32s':FCN32s,
+'PSPHead':PSPHead,
+'NonlocalDotProduct1D':NonlocalDotProduct1D,
+'NonlocalDotProduct2D':NonlocalDotProduct2D,
+'NonlocalDotProduct3D':NonlocalDotProduct3D,
+'NonlocalLocalGaussian1D':NonlocalLocalGaussian1D,
+'NonlocalLocalGaussian2D':NonlocalLocalGaussian2D,
+'NonlocalLocalGaussian3D':NonlocalLocalGaussian3D,
+'NonlocalLocalConcatenation1D':NonlocalLocalConcatenation1D,
+'NonlocalLocalConcatenation2D':NonlocalLocalConcatenation2D,
+'NonlocalLocalConcatenation3D':NonlocalLocalConcatenation3D,
+'NonlocalEmbeddedGaussian1D':NonlocalEmbeddedGaussian1D,
+'NonlocalEmbeddedGaussian2D':NonlocalEmbeddedGaussian2D,
+'NonlocalEmbeddedGaussian3D':NonlocalEmbeddedGaussian3D
+}

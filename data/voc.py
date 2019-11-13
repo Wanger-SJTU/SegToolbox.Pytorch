@@ -24,8 +24,11 @@ class VOCSegmentation(BaseDataset):
                  transform=None,
                  target_transform=None,
                  transforms=None,
-                 loadMemory=False):
-        super(VOCSegmentation, self).__init__(root, image_set, transform, target_transform, transforms, loadMemory)
+                 loadMemory=False,
+                 auxiliaryLoss=False):
+        super(VOCSegmentation, self).__init__(root, 
+                    image_set, transform, target_transform, 
+                    transforms, loadMemory,auxiliaryLoss)
         
         assert image_set in  ("train", "trainval", "val")
         self.image_set = image_set 

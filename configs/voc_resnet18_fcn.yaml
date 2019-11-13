@@ -4,22 +4,28 @@ MODEL:
   NUM_CLASSES: 21
   MODEL_NAME: resnet18_voc_fcn
   BACKBONE: resnet18
-  HEAD: fcnhead
-  INCHANNEL: [256, 512, 512]
-  SCALES: [4, 8, 16]
+  HEAD: fcn16s
+  INCHANNEL: [64, 64, 128, 256, 512] #[4, 8, 16, 32, 64]
+  SCALES: [1, 1, 1, 32, 2] # 
   BN_MOMENTUM: 0.9
   MODE: bilinear
   BN_EPSILON: 1.0000001e-5
   BN_INIT_GAMMA: 0.0
   USE_DROPOUT: False
   DROPOUT_RATE: 0.5 #if dropout layer
+  NONLOCAL:
+    USE: False
+    DIM:  2 # 1D,2D,3D version
+    TYPE: DotProduct # DotProduct,LocalGaussian,LocalConcatenation,EmbeddedGaussian
+    USE_BN: True
+    USE_SOFTMAX: False
 
 TRAIN:
   DATA_TYPE: train
   BATCH_SIZE: 12
   SHUFFLE: True
   EVAL_PERIOD: 1000
-  CROP_SIZE: 320 # 112
+  CROP_SIZE: 640 # 112
   
 TEST:
   DATA_TYPE: val
@@ -54,6 +60,3 @@ CHECKPOINT:
 TENSORBOARD:
   DIR: ./out/tensorboard/voc_fcn_resnet
 
-NONLOCAL:
-  USE_BN: True
-  USE_SOFTMAX: False

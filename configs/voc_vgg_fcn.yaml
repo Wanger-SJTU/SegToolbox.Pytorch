@@ -8,7 +8,7 @@ MODEL:
   MODEL_NAME: vgg_voc_fcn16s_nobn
   BACKBONE: VGG
   HEAD: fcn16s
-  INCHANNEL: [64, 128, 256, 512, 512]
+  INCHANNEL: [64, 128, 256, 512, 512] #[2, 4, 8, 16, 32]
   SCALES: [1, 2, 4, 16, 2] # upscale factor for each featuremap
   FACTOR: 32 # upscale factor for each featuremap
   USE_BN: False
@@ -53,7 +53,3 @@ SOLVER:
 
 CHECKPOINT:
   CHECKPOINT_MODEL: False
-
-NONLOCAL:
-  USE_BN: True
-  USE_SOFTMAX: False
