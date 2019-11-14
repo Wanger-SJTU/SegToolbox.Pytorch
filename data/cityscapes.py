@@ -3,7 +3,7 @@ import os
 from PIL import Image
 import numpy as np
 from torch.utils.data import dataset
-from .basedataset import BaseDataset
+from .basedataset import BaseDataset, Label
 
 class CityScapes(BaseDataset):
      def __init__(self,

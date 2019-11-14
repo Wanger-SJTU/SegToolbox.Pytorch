@@ -6,11 +6,20 @@ import numpy as np
 from collections import OrderedDict
 
 def load_state_dict(src, target):
+    # pdb.set_trace()
     for k,v in src.items():
         if 'bn' in k:
             continue
         if k in target.state_dict().keys():
-            target.state_dict()[k].copy_(torch.from_numpy(np.array(v)))
+            try:
+                v = v.numpy()
+            except RuntimeError:
+                v = v.detach().numpy()
+            try:
+                target.state_dict()[k].copy_(torch.from_numpy(v))
+            except:
+                pdb.set_trace()
+    set_requires_grad(target, True)
     return target
 
 

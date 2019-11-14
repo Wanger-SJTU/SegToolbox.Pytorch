@@ -15,6 +15,7 @@ class RandomPadding:
     def __init__(self, target_Size, index=0):
         self.target_Size = target_Size
         self.index = index
+        
     def __call__(self, imgmap):
         img,lbl = imgmap
         left,right,top,down = 0, 0, 0, 0
@@ -49,15 +50,15 @@ class RandomCropPad:
     
     def __call__(self, imgmap):
         shape = imgmap[0].size
-        if shape[0] >= self.size[0] and shape[1] >= self.size[1]:
+        if shape[0] > self.size[0] and shape[1] > self.size[1]:
             rc = RandomCrop(self.size)
             return rc(imgmap)
-        if shape[0] > self.size[0]:
+        elif shape[0] > self.size[0]:
             rc = RandomCrop((self.size[0], shape[1]))
             imgmap = rc(imgmap)
             rp = RandomPadding(self.size, self.index)
             return rp(imgmap)
-        if shape[1] > self.size[1]:
+        elif shape[1] > self.size[1]:
             rc = RandomCrop((shape[0], self.size[1]))
             imgmap = rc(imgmap)
             rp = RandomPadding(self.size,self.index)

@@ -4,13 +4,15 @@ import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 
-__all__ = ['ResNet', 'resnet_dilated_18', 'resnet_dilated_34', 
-            'resnet_dilated_50',
-            'resnet_dilated_101', 'resnet_dilated_152']
+__all__ = ['resnet_dilated', 'resnet_dilated_18', 'resnet_dilated_34', 
+            'resnet_dilated_50','resnet_dilated_101', 'resnet_dilated_152']
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
     'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
+    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
+    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
+    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
 }
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -105,8 +107,6 @@ class Bottleneck(nn.Module):
         out = self.relu(out)
 
         return out
-
-
 class ResNet(nn.Module):
     """Dilated Pre-trained ResNet Model, which preduces the stride of 8 featuremaps at conv5.
 
@@ -132,7 +132,7 @@ class ResNet(nn.Module):
         - Yu, Fisher, and Vladlen Koltun. "Multi-scale context aggregation by dilated convolutions."
     """
     # pylint: disable=unused-variable
-    def __init__(self, block, layers, num_classes=1000, dilated=True,
+    def __init__(self, block, layers, dilated=True,
                  deep_base=True, norm_layer=nn.BatchNorm2d, output_size=8):
         self.inplanes = 128 if deep_base else 64
         super(ResNet, self).__init__()
@@ -152,6 +152,7 @@ class ResNet(nn.Module):
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        
         self.layer1 = self._make_layer(block, 64, layers[0], norm_layer=norm_layer)
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, norm_layer=norm_layer)
 
@@ -171,8 +172,8 @@ class ResNet(nn.Module):
             self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
                                            norm_layer=norm_layer)
 
-        self.avgpool = nn.AvgPool2d(7, stride=1)
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        # self.avgpool = nn.AvgPool2d(7, stride=1)
+        # self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -212,19 +213,24 @@ class ResNet(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        x = self.maxpool(x)
+        x0 = self.maxpool(x)
 
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
+        x1 = self.layer1(x0)
+        x2 = self.layer2(x1)
+        x3 = self.layer3(x2)
+        x4 = self.layer4(x3)
 
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
+        return x0,x1,x2,x3,x4
 
-        return x
 
+def resnet_dilated(cfg):
+    import sys
+    try:
+        return getattr(sys.modules[__name__], cfg.MODEL.BACKBONE)(
+            pretrained=cfg.PRETRAIN.PRETRAIN,
+            **cfg.RESNETS)
+    except:
+        raise RuntimeError("{0} not defined".format(cfg.MODEL.BACKBONE))
 
 def resnet_dilated_18(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
@@ -249,7 +255,6 @@ def resnet_dilated_34(pretrained=False, **kwargs):
         model.load_state_dict(model_zoo.load_url(model_urls['resnet34']))
     return model
 
-
 def resnet_dilated_50(pretrained=False, root='~/.encoding/models', **kwargs):
     """Constructs a ResNet-50 model.
 
@@ -263,7 +268,6 @@ def resnet_dilated_50(pretrained=False, root='~/.encoding/models', **kwargs):
             get_model_file('resnet50', root=root)), strict=False)
     return model
 
-
 def resnet_dilated_101(pretrained=False, root='~/.encoding/models', **kwargs):
     """Constructs a ResNet-101 model.
 
@@ -276,7 +280,6 @@ def resnet_dilated_101(pretrained=False, root='~/.encoding/models', **kwargs):
         model.load_state_dict(torch.load(
             get_model_file('resnet101', root=root)), strict=False)
     return model
-
 
 def resnet_dilated_152(pretrained=False, root='~/.encoding/models', **kwargs):
     """Constructs a ResNet-152 model.

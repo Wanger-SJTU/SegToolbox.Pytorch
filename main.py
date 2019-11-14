@@ -3,7 +3,7 @@
 # @author bulbasaur
 # @description 
 # @created 2019-10-29T20:11:52.502Z+08:00
-# @last-modified 2019-11-13T13:39:14.806Z+08:00
+# @last-modified 2019-11-14
 #
 
 import os
@@ -13,10 +13,12 @@ import tqdm
 import numpy as np
 import torchvision as tv
 
+from data import index2rgb
 from data import getDataset
 from lib import createSegModel
 from lib.core.config import config
 from lib.core.options import Options
+from lib.core.config import print_cfg
 from lib.core.config import cfg_from_file
 from lib.utils.optims import getOptimizer
 from lib.utils.optims import adjustLearningRate
@@ -24,8 +26,7 @@ from lib.utils.criteria import CrossEntropyLoss2d
 
 from lib.utils import transforms
 from lib.utils import reMaskLabel
-from lib.utils.vis import Visualizer
-from lib.utils.colorize import index2rgb
+from lib.utils.vis import Visualizer 
 from lib.utils.misc import MySummaryWriter
 from lib.utils.metrics import label_accuracy_score
 
@@ -36,6 +37,7 @@ opts = opts.parse()
 cfg = config
 cfg_from_file(opts.config)
 cfg.TRAIN.DROPOUT_RATE = opts.ratio
+print_cfg() # record training hyper-parameters
 
 # visualization
 visualizer = Visualizer(envs=cfg.MODEL.MODEL_NAME+"_ratio_"+str(opts.ratio))

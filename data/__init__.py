@@ -3,13 +3,15 @@ import pdb
 
 from .voc import VOCSegmentation
 from .ade2k import ADE2K
+from .colorize import index2rgb
 
 datasets = {
     'voc'   :VOCSegmentation,
     'ade2k' :ADE2K
 }
 
-__all__ = ["getDataset"]
+__all__ = ["getDataset", "index2rgb"]
+
 def getDataset(cfg, 
                image_set='train',
                transform=None,

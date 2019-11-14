@@ -108,16 +108,17 @@ __C.MODEL.NONLOCAL.BN_INIT_GAMMA = 0.0
 
 # for ResNet or ResNeXt only
 __C.RESNETS = AttrDict()
-__C.RESNETS.NUM_GROUPS = 1
-__C.RESNETS.WIDTH_PER_GROUP = 64
-__C.RESNETS.STRIDE_1X1 = False
-__C.RESNETS.TRANS_FUNC = 'bottleneck_transformation'
+__C.RESNETS.num_groups = 1
+__C.RESNETS.width_per_group = 64
+__C.RESNETS.stride_1x1 = False
+__C.RESNETS.trans_func = 'bottleneck_transformation'
 
-__C.RESNETS.ZERO_INIT_RESIDUAL=False
-__C.RESNETS.DEEP_BASE=True # trick in PSPnet
-__C.RESNETS.GROUPS=1
-__C.RESNETS.REPLACE_STRIDE_WITH_DILATION=None
-__C.RESNETS.NORM_LAYER = None
+__C.RESNETS.zero_init_residual=False
+__C.RESNETS.deep_base=False # trick in PSPnet
+__C.RESNETS.groups=1
+__C.RESNETS.output_size=8
+__C.RESNETS.replace_stride_with_dilation=None
+__C.RESNETS.norm_layer = None
 
 # Test
 __C.TEST = AttrDict()
@@ -169,12 +170,6 @@ __C.TENSORBOARD = AttrDict()
 __C.TENSORBOARD.DIR = './out/tensorboard/'
 __C.TENSORBOARD.HIST = True
 
-__C.LOG = AttrDict()
-__C.LOG.DIR = './out/log/'
-
-
-
-
 __C.DATALOADER = AttrDict()
 __C.DATALOADER.num_workers = 4
 __C.DATALOADER.pin_memory = True
@@ -184,18 +179,21 @@ def print_cfg():
     # import logging
     import time
     import os
-    file_name = os.path.join(__C.LOG.DIR,
+    import yaml
+    file_name = os.path.join(__C.CHECKPOINT.DIR,
                              __C.MODEL.MODEL_NAME,
-            __C.MODEL.MODEL_NAME+"_"+\
-        time.strftime(r"%Y_%m_%d_%H_%M", time.localtime())+'.log')
+                             "ratio_"+str(__C.TRAIN.DROPOUT_RATE),
+        time.strftime(r"%Y_%m_%d", time.localtime())+'.yaml')
+
     if not os.path.exists(os.path.dirname(file_name)):
         os.makedirs(os.path.dirname(file_name))
 
-    with open(file_name, 'a' ,encoding='utf8') as f:
-        f.write('------------ Configs -------------\n')
-        for k, v in sorted(__C.items()):
-            f.write('%s: %s \n' % (str(k), str(v)))
-        f.write('------------ End -------------\n')
+    with open(file_name, 'w' ,encoding='utf8') as f:
+        # f.write('------------ Configs -------------\n')
+        yaml.dump(__C, f)
+        # for k, v in sorted(__C.items()):
+        #     f.write('%s: %s \n' % (str(k), str(v)))
+        # f.write('------------ End -------------\n')
 
 def assert_and_infer_cfg():
 
@@ -259,7 +257,7 @@ def cfg_from_file(filename):
     with open(filename, 'r') as fopen:
         yaml_config = AttrDict(yaml.load(fopen, Loader=yaml.FullLoader))
     merge_dicts(yaml_config, __C)
-    print_cfg()
+    
 
 def cfg_from_list(args_list):
     """Set config keys via list (e.g., from command line)."""

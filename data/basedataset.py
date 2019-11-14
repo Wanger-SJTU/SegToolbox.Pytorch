@@ -3,7 +3,7 @@
 # @author wanger
 # @description 
 # @created 2019-11-06T13:39:41.110Z+08:00
-# @last-modified 2019-11-14T00:59:42.392Z+08:00
+# @last-modified 2019-11-14
 #
 
 import pdb
@@ -17,6 +17,8 @@ from torch.utils.data import dataset
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+__all__ = ['BaseDataset', 'Label']
+
 class BaseDataset(dataset.Dataset):
     def __init__(self,
                  root,
@@ -25,7 +27,7 @@ class BaseDataset(dataset.Dataset):
                  target_transform=None,
                  transforms=None,
                  loadMemory=False,
-                 auxiliaryLoss = False):
+                 auxiliaryLoss=False):
         super(BaseDataset, self).__init__()
         assert image_set in ("train", "val", "trainval")
         self.root = root
@@ -82,3 +84,17 @@ class BaseDataset(dataset.Dataset):
         self.masks = masks
         print("loaded {} images into memory".format(len(images)))
         print("--"*5)
+
+
+from collections import namedtuple
+Label = namedtuple( 'Labelinfo' , [
+    'name'  , # The identifier of this label, e.g. 'car', 'person', ... .
+                    # We use them to uniquely name a class
+    'id'    ,  # An integer ID that is associated with this label.
+                    # The IDs are used to represent the label in ground truth images
+                    # An ID of -1 means that this label does not have an ID and thus
+                    # is ignored when creating ground truth images (e.g. license plate).
+                    # Do not modify these IDs, since exactly these IDs are expected by the
+                    # evaluation server.    
+    'color'         # The color of this label
+    ] )
