@@ -54,9 +54,4 @@ SOLVER:
     WARMUP_END_ITER: 2000
 
 CHECKPOINT:
-  DIR: ./out/checkpoints/voc_fcn_resnet
-  CHECKPOINT_PERIOD: 1000
-
-TENSORBOARD:
-  DIR: ./out/tensorboard/voc_fcn_resnet
-
+  CHECKPOINT_MODEL: False

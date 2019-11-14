@@ -1,10 +1,3 @@
-# -*- coding: UTF-8 -*-
-# __init__.py
-# @author wanger
-# @description 
-# @created 2019-10-28T15:54:57.838Z+08:00
-# @last-modified 2019-11-13T22:04:02.053Z+08:00
-#
 
 import torch.nn as nn
 

@@ -6,3 +6,4 @@ watch_run.py
 data/basePipline.py
 lib/utils/dali*
 scripts/
+configs/
