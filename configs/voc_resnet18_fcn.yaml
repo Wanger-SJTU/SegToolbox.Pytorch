@@ -12,6 +12,7 @@ MODEL:
   SCALES: [1, 1, 1, 16, 2] # 
   BN_MOMENTUM: 0.9
   MODE: bilinear
+  FACTOR: 32
   BN_EPSILON: 1.0000001e-5
   BN_INIT_GAMMA: 0.0
   USE_DROPOUT: False
@@ -32,7 +33,7 @@ TRAIN:
   
 TEST:
   DATA_TYPE: val
-  BATCH_SIZE: 32
+  BATCH_SIZE: 1
   CROP_SIZE: 224
   SHUFFLE: False
 

@@ -175,7 +175,7 @@ __C.DATALOADER.num_workers = 4
 __C.DATALOADER.pin_memory = True
 
 
-def print_cfg():
+def log_cfg():
     # import logging
     import time
     import os

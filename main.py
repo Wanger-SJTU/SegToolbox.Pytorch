@@ -17,8 +17,8 @@ from data import index2rgb
 from data import getDataset
 from lib import createSegModel
 from lib.core.config import config
+from lib.core.config import log_cfg
 from lib.core.options import Options
-from lib.core.config import print_cfg
 from lib.core.config import cfg_from_file
 from lib.utils.optims import getOptimizer
 from lib.utils.optims import adjustLearningRate
@@ -36,15 +36,21 @@ opts = opts.parse()
 
 cfg = config
 cfg_from_file(opts.config)
+
 cfg.TRAIN.DROPOUT_RATE = opts.ratio
-print_cfg() # record training hyper-parameters
+log_cfg() # record training hyper-parameters
 
 # visualization
 visualizer = Visualizer(envs=cfg.MODEL.MODEL_NAME+"_ratio_"+str(opts.ratio))
 
+if cfg.MODEL.PRETRAIN:
+    cfg.MODEL.MODEL_NAME += "/pretrain"
+else:
+    cfg.MODEL.MODEL_NAME += "/scratch"
+
 tensorboard_dir = os.path.join(
     cfg.TENSORBOARD.DIR,
-    cfg.MODEL.MODEL_NAME,#+"_eval",
+    cfg.MODEL.MODEL_NAME,
     "ratio_"+str(opts.ratio)
 )
 checkpoint_dir = os.path.join(
@@ -77,7 +83,9 @@ val_transforms = tv.transforms.Compose([
 ])
 
 train_transforms = tv.transforms.Compose([
+    transforms.RandomResize(),
     transforms.RandomCropPad(cfg.TRAIN.CROP_SIZE, cfg.DATASET.IGNOREIDX),
+    transforms.RandomGaussBlur(),
     transforms.ToTensor()
 ])
 
@@ -95,8 +103,6 @@ val_loader = torch.utils.data.dataloader.DataLoader(val_set,
     batch_size=cfg.TEST.BATCH_SIZE, shuffle=cfg.TEST.SHUFFLE, 
     **cfg.DATALOADER)
 
-#training
-
 def train():
     if cfg.SOLVER.WARMUP.WARMUP_ON:
         warmUpModel()
@@ -105,7 +111,9 @@ def train():
     for epoch in tqdm.tqdm(range(epoches), total=epoches, ncols=80):
         loader = tqdm.tqdm(train_loader, total=len(train_loader), 
                             ncols=80, leave=False)
-        for item in loader: 
+        for idx,item in enumerate(loader):
+            if epoch == 8 and idx ==22:
+                import pdb;pdb.set_trace()
             writer.addStep()
             img = item[0].cuda()
             new_lbl = reMaskLabel(item[1].numpy().copy(), opts.ratio, cfg.DATASET.IGNOREIDX)
@@ -245,6 +253,7 @@ def warmUpModel():
                 model.train()
             
 if __name__ == "__main__":
+    # eval_data()
     train()
-    # val(0)
+    #val(0)
     writer.close()

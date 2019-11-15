@@ -270,9 +270,18 @@ class RandomVerticalFlip:
         return imgmap
   
 class RandomRotation:
+    def __init__(self,degree=10):
+        if degree is numbers.Number:
+            self.degree = degree
+        elif isinstance(degree, collections.Iterable):
+            assert len(degree) == 2 and min(degree) > 0
+            self.degree = degree
+        else:
+            raise ValueError("length of radius must be number or list"+ \
+                                ", but got {}.".format(type(degree)))
 
-    def __call__(self, imgmap, degree=10):
-        # img, target = imgmap
+    def __call__(self, imgmap):
+        imgmap = list(imgmap)
         deg = np.random.randint(-degree, degree, 1)[0]
         for idx in range(len(imgmap)):
             if isinstance(imgmap[idx], Image.Image):
@@ -282,11 +291,29 @@ class RandomRotation:
         return imgmap
 
 class RandomGaussBlur:
-        
-    def __call__(self, imgmap, r=1.0):
-        # img, target = imgmap
-        if isinstance(imgmap[idx], Image.Image):
-            imgmap[0].filter(ImageFilter.GaussianBlur(r))
+    '''
+    add GaussBlur to image, if radius is number, keep fixed
+    else random choose for given range
+    '''
+    def __init__(self, radius=[1,10]):
+        if radius is numbers.Number:
+            self.radius = radius
+        elif isinstance(radius, collections.Iterable):
+            assert len(radius) == 2 and min(radius) > 0
+            self.radius = radius
+        else:
+            raise ValueError("length of radius must be number or list"+ \
+                                ", but got {}.".format(type(radius)))
+
+    def __call__(self, imgmap):
+        imgmap = list(imgmap)
+        if isinstance(self.radius, collections.Iterable):
+            r = random.randint(min(self.radius), max(self.radius))
+        else:
+            r = self.radius
+
+        if isinstance(imgmap[0], Image.Image):
+            imgmap[0]=imgmap[0].filter(ImageFilter.GaussianBlur(r))
         else:
             raise NotImplementedError("Only support PIL Image")
         return imgmap
@@ -294,10 +321,11 @@ class RandomGaussBlur:
 class Scale_Fixed:
     def __init__(self, scale=4):
         self.scale = scale
+
     def __call__(self, imgmap):
         scale = self.scale
         img, *_ = imgmap
-       
+        imgmap = list(imgmap)
         if isinstance(img, Image.Image):
             new_size = [int(img.size[0]*scale), int(img.size[1]*scale)]
         elif isinstance(img, np.ndarray):
@@ -313,6 +341,7 @@ class Scale_Fixed:
 class RandomResize:
     def __call__(self, imgmap, scale=(1, 1.2)):
         img, *_ = imgmap
+        imgmap = list(imgmap)
         assert imgmap[0].size == imgmap[1].size, "{0} and {1}".format(imgmap[0].size, imgmap[1].size)
         scale_rand = np.random.randint(int(scale[0]*10), int(scale[1]*10))/10
         new_size = (int(img.size[0]*scale_rand), int(img.size[1]*scale_rand))

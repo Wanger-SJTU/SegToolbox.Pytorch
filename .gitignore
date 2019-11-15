@@ -7,3 +7,4 @@ data/basePipline.py
 lib/utils/dali*
 scripts/
 configs/
+datasets/

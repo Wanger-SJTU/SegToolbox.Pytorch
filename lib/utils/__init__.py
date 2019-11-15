@@ -9,10 +9,12 @@ def reMaskLabel(originLbl, ratio, ignore_index):
     data = []
     a = list(range(0, shape[-1]*shape[-2]))
     threshold = shape[-1] * shape[-2] * ratio
-    for _ in range(shape[0]):
-        random.shuffle(a)
-        b = np.array(a).reshape(shape[-2], shape[-1])
-        data.append(b)
+    random.shuffle(a)
+    b = np.array(a).reshape(shape[-2], shape[-1])
+    data = [b]*shape[0]
+    # for _ in range(shape[0]):
+    #     random.shuffle(a)
+    #     data.append(b)
     mask = np.array(data) > threshold
     originLbl[mask] = ignore_index
     return originLbl.copy()
