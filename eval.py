@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
-# profile.py
-# @author wanger
+#
+# main.py
+# @author bulbasaur
 # @description 
-# @license      MIT License
-#    
+# @created 2019-10-29T20:11:52.502Z+08:00
+# @last-modified 2019-11-14
+#
 
 import os
 import math
@@ -39,6 +40,32 @@ cfg_from_file(opts.config)
 cfg.TRAIN.DROPOUT_RATE = opts.ratio
 log_cfg() # record training hyper-parameters
 
+# visualization
+visualizer = Visualizer(envs=cfg.MODEL.MODEL_NAME+"_ratio_"+str(opts.ratio))
+
+if cfg.MODEL.PRETRAIN:
+    cfg.MODEL.MODEL_NAME += "/pretrain"
+else:
+    cfg.MODEL.MODEL_NAME += "/scratch"
+
+tensorboard_dir = os.path.join(
+    cfg.TENSORBOARD.DIR,
+    cfg.MODEL.MODEL_NAME,
+    "ratio_"+str(opts.ratio)
+)
+checkpoint_dir = os.path.join(
+   cfg.CHECKPOINT.DIR,
+   cfg.MODEL.MODEL_NAME,
+   "ratio_"+str(opts.ratio)
+)
+
+# if not os.path.exists(tensorboard_dir):
+#     os.makedirs(tensorboard_dir)
+# if not os.path.exists(checkpoint_dir):
+#     os.makedirs(checkpoint_dir)
+
+# writer = MySummaryWriter(log_dir=tensorboard_dir)
+
 # for model reproducible
 SEED = 1123
 torch.manual_seed(SEED)
@@ -56,9 +83,9 @@ val_transforms = tv.transforms.Compose([
 ])
 
 train_transforms = tv.transforms.Compose([
-    # transforms.RandomResize(),
+    transforms.RandomResize(),
     transforms.RandomCropPad(cfg.TRAIN.CROP_SIZE, cfg.DATASET.IGNOREIDX),
-    # transforms.RandomGaussBlur(),
+    transforms.RandomGaussBlur(),
     transforms.ToTensor()
 ])
 
@@ -75,35 +102,39 @@ val_set = getDataset(cfg, 'val', transforms=val_transforms)
 val_loader = torch.utils.data.dataloader.DataLoader(val_set, 
     batch_size=cfg.TEST.BATCH_SIZE, shuffle=cfg.TEST.SHUFFLE, 
     **cfg.DATALOADER)
-
-
-def eval_block():
+     
+def train():
     adjustLearningRate(optim, cfg.SOLVER.BASE_LR)
     epoches = math.ceil(cfg.SOLVER.MAX_ITER/len(train_loader))
-
-    for idx,item in enumerate(train_loader):
-        if idx == 0:
-            break
-    # item = train_loader[0]      
-    img = item[0].cuda()
-    new_lbl = reMaskLabel(item[1].numpy().copy(), opts.ratio, cfg.DATASET.IGNOREIDX)
-    new_lbl = torch.from_numpy(new_lbl).long().cuda()
-    lbl_true = item[1]
-    # import pdb;pdb.set_trace()
-    probs = model(img)
-    optim.zero_grad()
-    loss = CrossEntropyLoss2d(probs, new_lbl, cfg.DATASET.IGNOREIDX)
-    loss.backward()
-    optim.step()
-                
-    lbl_pred = probs.data.max(1)[1].cpu().detach().numpy()
-    lbl_true = lbl_true.data.cpu().numpy()
-    lbl_new  = new_lbl.data.cpu().numpy()
-    src_img  = img.data.cpu().numpy()
-                
-    metrics = label_accuracy_score(lbl_true, lbl_pred, cfg.MODEL.NUM_CLASSES)
+    for epoch in tqdm.tqdm(range(epoches), total=epoches, ncols=80):
+        loader = tqdm.tqdm(train_loader, total=len(train_loader), 
+                            ncols=80, leave=False)
+        for idx,item in enumerate(loader):
+            if epoch == 8 and idx ==22:
+                import pdb;pdb.set_trace()
+           
+            img = item[0].cuda()
+            new_lbl = item[1].cuda()
+            # reMaskLabel(item[1].numpy().copy(), opts.ratio, cfg.DATASET.IGNOREIDX)
+            # new_lbl = torch.from_numpy(new_lbl).long().cuda()
+            lbl_true = item[1]
+            # import pdb;pdb.set_trace()
+            probs = model(img)
+            optim.zero_grad()
+            loss = CrossEntropyLoss2d(probs, new_lbl, cfg.DATASET.IGNOREIDX)
+            loss.backward()
+            optim.step()
             
+            lbl_pred = probs.data.max(1)[1].cpu().detach().numpy()
+            lbl_true = lbl_true.data.cpu().numpy()
+            lbl_new  = new_lbl.data.cpu().numpy()
+            src_img  = img.data.cpu().numpy()
+            
+            metrics = label_accuracy_score(lbl_true, lbl_pred, cfg.MODEL.NUM_CLASSES)
+           
+           
 if __name__ == "__main__":
-    import cProfile
-    import pstats
-    cProfile.run("eval_block()","res.out")
+    # eval_data()
+    train()
+    # val(epoch)
+    writer.close()

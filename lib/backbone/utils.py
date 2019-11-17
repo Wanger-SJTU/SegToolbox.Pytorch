@@ -18,17 +18,18 @@ def load_state_dict(src, target):
             try:
                 target.state_dict()[k].copy_(torch.from_numpy(v))
             except:
-                pdb.set_trace()
+                pdb.set_trace()   
     set_requires_grad(target, True)
     return target
 
+def set_requires_grad(nets, requires_grad=False):
+    if not isinstance(nets, list):
+        nets = [nets]
+    for net in nets:
+        if net is not None:
+            for param in net.parameters():
+                param.requires_grad = requires_grad
 
-def load_bn_params(src_model, dst_paras):
-    for key,value in dst_paras.items():
-    # if 'module.' not in key:
-    #   key = 'module.'+ key
-        value = value.cpu().numpy()
-        src_model.state_dict()[key].copy_(torch.from_numpy(np.array(value)).cuda()) 
 
 def get_adabn_params(model):
     new_dict = OrderedDict()
@@ -61,10 +62,9 @@ def reset_bn_params(model):
         if isinstance(layer, torch.nn.BatchNorm2d):
             layer.reset_parameters()
 
-def set_requires_grad(nets, requires_grad=False):
-    if not isinstance(nets, list):
-        nets = [nets]
-    for net in nets:
-        if net is not None:
-            for param in net.parameters():
-                param.requires_grad = requires_grad
+def load_bn_params(src_model, dst_paras):
+    for key,value in dst_paras.items():
+    # if 'module.' not in key:
+    #   key = 'module.'+ key
+        value = value.cpu().numpy()
+        src_model.state_dict()[key].copy_(torch.from_numpy(np.array(value)).cuda()) 

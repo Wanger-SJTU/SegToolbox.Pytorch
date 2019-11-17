@@ -17,13 +17,7 @@ MODEL:
   BN_INIT_GAMMA: 0.0
   USE_DROPOUT: False
   DROPOUT_RATE: 0.5 #if dropout layer
-  NONLOCAL:
-    USE: False
-    DIM:  2 # 1D,2D,3D version
-    TYPE: DotProduct # DotProduct,LocalGaussian,LocalConcatenation,EmbeddedGaussian
-    USE_BN: True
-    USE_SOFTMAX: False
-
+  
 TRAIN:
   DATA_TYPE: train
   BATCH_SIZE: 12

@@ -2,17 +2,23 @@
 import math
 import torch
 import torch.nn as nn
-import torch.utils.model_zoo as model_zoo
+
+try:
+    from torch.hub import load_state_dict_from_url
+except ImportError:
+    from torch.utils.model_zoo import load_url as load_state_dict_from_url
+
+from .utils import load_state_dict
 
 __all__ = ['resnet_dilated', 'resnet_dilated_18', 'resnet_dilated_34', 
             'resnet_dilated_50','resnet_dilated_101', 'resnet_dilated_152']
 
 model_urls = {
-    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
-    'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
-    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
-    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
-    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
+    'resnet_dilated_18' : 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
+    'resnet_dilated_34' : 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
+    'resnet_dilated_50' : 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
+    'resnet_dilated_101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
+    'resnet_dilated_152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
 }
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -133,7 +139,7 @@ class ResNet(nn.Module):
     """
     # pylint: disable=unused-variable
     def __init__(self, block, layers, dilated=True,
-                 deep_base=True, norm_layer=nn.BatchNorm2d, output_size=8):
+                 deep_base=True, norm_layer=nn.BatchNorm2d, output_size=8,**kwargs):
         self.inplanes = 128 if deep_base else 64
         super(ResNet, self).__init__()
         if deep_base:
@@ -222,15 +228,23 @@ class ResNet(nn.Module):
 
         return x0,x1,x2,x3,x4
 
-
 def resnet_dilated(cfg):
     import sys
+    
     try:
-        return getattr(sys.modules[__name__], cfg.MODEL.BACKBONE)(
-            pretrained=cfg.PRETRAIN.PRETRAIN,
-            **cfg.RESNETS)
-    except:
-        raise RuntimeError("{0} not defined".format(cfg.MODEL.BACKBONE))
+        return getattr(sys.modules[__name__], cfg.MODEL.BACKBONE)(pretrained=cfg.MODEL.PRETRAIN,**cfg.RESNETS)
+    except AttributeError:
+        raise RuntimeError("model {0} not defined".format(cfg.MODEL.BACKBONE))
+
+
+def _resnet_dilated(arch, block, layers, pretrained, **kwargs):
+    model = ResNet(block, layers, **kwargs)
+    if pretrained:
+        state_dict = load_state_dict_from_url(model_urls[arch],
+                                              progress=True)
+        # model.load_state_dict(state_dict)
+        model = load_state_dict(state_dict, model)
+    return model
 
 def resnet_dilated_18(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
@@ -238,58 +252,39 @@ def resnet_dilated_18(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
-    return model
-
-
+    return _resnet_dilated("resnet_dilated_18", BasicBlock, [2, 2, 2, 2], pretrained, **kwargs)
+    
 def resnet_dilated_34(pretrained=False, **kwargs):
     """Constructs a ResNet-34 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['resnet34']))
-    return model
-
-def resnet_dilated_50(pretrained=False, root='~/.encoding/models', **kwargs):
+    return _resnet_dilated("resnet_dilated_34", BasicBlock, [3, 4, 6, 3], pretrained, **kwargs)
+    
+def resnet_dilated_50(pretrained=False, **kwargs):
     """Constructs a ResNet-50 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
-    if pretrained:
-        from ..models.model_store import get_model_file
-        model.load_state_dict(torch.load(
-            get_model_file('resnet50', root=root)), strict=False)
-    return model
+    return _resnet_dilated("resnet_dilated_50", Bottleneck, [3, 4, 6, 3], pretrained,**kwargs)
+    
 
-def resnet_dilated_101(pretrained=False, root='~/.encoding/models', **kwargs):
+def resnet_dilated_101(pretrained=False, **kwargs):
     """Constructs a ResNet-101 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
-    if pretrained:
-        from ..models.model_store import get_model_file
-        model.load_state_dict(torch.load(
-            get_model_file('resnet101', root=root)), strict=False)
-    return model
+    return _resnet_dilated("resnet_dilated_101", Bottleneck, [3, 4, 23, 3],pretrained, **kwargs)
+    
 
-def resnet_dilated_152(pretrained=False, root='~/.encoding/models', **kwargs):
+def resnet_dilated_152(pretrained=False, **kwargs):
     """Constructs a ResNet-152 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
-    if pretrained:
-        from ..models.model_store import get_model_file
-        model.load_state_dict(torch.load(
-            get_model_file('resnet152', root=root)), strict=False)
-    return model
+    return _resnet_dilated("resnet_dilated_152", Bottleneck, [3, 8, 36, 3], pretrained, **kwargs)
+    

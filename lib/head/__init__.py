@@ -27,7 +27,7 @@ heads = {
 'fcn8s':FCN8s,
 'fcn16s':FCN16s,
 'fcn32s':FCN32s,
-'PSPHead':PSPHead,
+'psphead':PSPHead,
 'NonlocalDotProduct1D':NonlocalDotProduct1D,
 'NonlocalDotProduct2D':NonlocalDotProduct2D,
 'NonlocalDotProduct3D':NonlocalDotProduct3D,

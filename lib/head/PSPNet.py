@@ -5,7 +5,17 @@ import torch.nn.functional as F
 
 __all__ = ["PSPHead"]
 
-models = {
+deep_features_size = {
+'squeezenet':256,
+'densenet'  :512,
+'resnet18'  :256,
+'resnet34'  :256,
+'resnet50'  :1024,
+'resnet101' :1024,
+'resnet152' :1024
+}# 倒数第三层的channel数
+
+models_para = {
   'squeezenet': lambda: PSPNet(sizes=(1, 2, 3, 6), psp_size=512,  deep_features_size=256,  backend='squeezenet'),
   'densenet'  : lambda: PSPNet(sizes=(1, 2, 3, 6), psp_size=1024, deep_features_size=512,  backend='densenet'),
   'resnet18'  : lambda: PSPNet(sizes=(1, 2, 3, 6), psp_size=512,  deep_features_size=256,  backend='resnet18'),
@@ -16,29 +26,28 @@ models = {
 }
 
 class PSPHead(nn.Module):
-    def __init__(self, n_classes, psp_size, sizes, deep_features_size, drop_1=0.3, drop_2=0.15):
+    def __init__(self, cfg):       
         '''
         args:
             psp_size: size of input channels
             sizes : PSP module conv size ,defalut 1,2,3,6
             deep_features_size: features for classfier
         '''
-        super(PSPHead, self).__init__()
-
-        self.psp = PSPModule(psp_size, 1024, sizes)
-        self.drop_1 = nn.Dropout2d(p=drop_1)
+        super(PSPHead, self).__init__() 
+        self.psp = PSPModule(cfg.MODEL.INCHANNEL[-1], 1024, cfg.PSP.sizes)
+        self.drop_1 = nn.Dropout2d(p=cfg.PSP.drop_1)
 
         self.up_1 = PSPUpsample(1024, 256) # scale = 2
         self.up_2 = PSPUpsample(256, 64)   # scale = 2
         self.up_3 = PSPUpsample(64, 64)    # scale = 2
 
-        self.drop_2 = nn.Dropout2d(p=drop_2) 
-        self.final = nn.Sequential(nn.Conv2d(64, n_classes, kernel_size=1))
+        self.drop_2 = nn.Dropout2d(p=cfg.PSP.drop_2) 
+        self.final = nn.Sequential(nn.Conv2d(64, cfg.MODEL.NUM_CLASSES, kernel_size=1))
 
         self.classifier = nn.Sequential(
-            nn.Linear(deep_features_size, 256),
-            nn.ReLU(),
-            nn.Linear(256, n_classes))
+            nn.Linear(cfg.MODEL.INCHANNEL[-3], 256),
+            nn.ReLU(True),
+            nn.Linear(256, cfg.MODEL.NUM_CLASSES))
 
     def forward(self, *args):
         class_f, f = args[3], args[-1] 
@@ -69,7 +78,6 @@ class PSPUpsample(nn.Module):
         p = F.interpolate(input=x, size=(h, w), mode='bilinear',align_corners=True)
         return self.conv(p)
 
-
 class PSPModule(nn.Module):
     def __init__(self, features, out_features=1024, sizes=(1, 2, 3, 6)):
         super(PSPModule, self).__init__()
@@ -87,3 +95,41 @@ class PSPModule(nn.Module):
         priors = [F.interpolate(input=stage(feats), size=(h, w), mode='bilinear', align_corners=True) for stage in self.stages] + [feats]
         bottle = self.bottleneck(torch.cat(priors, 1))
         return self.relu(bottle)
+
+
+
+class PyramidPooling(nn.Module):
+    """
+    Reference:
+        Zhao, Hengshuang, et al. *"Pyramid scene parsing network."*
+    """
+    def __init__(self, in_channels, norm_layer, up_kwargs):
+        super(PyramidPooling, self).__init__()
+        self.pool1 = AdaptiveAvgPool2d(1)
+        self.pool2 = AdaptiveAvgPool2d(2)
+        self.pool3 = AdaptiveAvgPool2d(3)
+        self.pool4 = AdaptiveAvgPool2d(6)
+
+        out_channels = int(in_channels/4)
+        self.conv1 = Sequential(Conv2d(in_channels, out_channels, 1, bias=False),
+                                norm_layer(out_channels),
+                                ReLU(True))
+        self.conv2 = Sequential(Conv2d(in_channels, out_channels, 1, bias=False),
+                                norm_layer(out_channels),
+                                ReLU(True))
+        self.conv3 = Sequential(Conv2d(in_channels, out_channels, 1, bias=False),
+                                norm_layer(out_channels),
+                                ReLU(True))
+        self.conv4 = Sequential(Conv2d(in_channels, out_channels, 1, bias=False),
+                                norm_layer(out_channels),
+                                ReLU(True))
+        # bilinear upsample options
+        self._up_kwargs = up_kwargs
+
+    def forward(self, x):
+        _, _, h, w = x.size()
+        feat1 = F.upsample(self.conv1(self.pool1(x)), (h, w), **self._up_kwargs)
+        feat2 = F.upsample(self.conv2(self.pool2(x)), (h, w), **self._up_kwargs)
+        feat3 = F.upsample(self.conv3(self.pool3(x)), (h, w), **self._up_kwargs)
+        feat4 = F.upsample(self.conv4(self.pool4(x)), (h, w), **self._up_kwargs)
+        return torch.cat((x, feat1, feat2, feat3, feat4), 1)

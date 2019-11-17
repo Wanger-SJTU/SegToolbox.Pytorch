@@ -242,8 +242,7 @@ def resnet(cfg):
     import sys
     try:
         return getattr(sys.modules[__name__], cfg.MODEL.BACKBONE)(pretrained=cfg.MODEL.PRETRAIN,**cfg.RESNETS)
-    except:
-        import pdb;pdb.set_trace()
+    except AttributeError:
         raise RuntimeError("{0} not defined".format(cfg.MODEL.BACKBONE))
 
 def resnet18(pretrained=False, progress=True, **kwargs):

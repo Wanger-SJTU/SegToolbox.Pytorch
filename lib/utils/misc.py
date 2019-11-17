@@ -1,15 +1,29 @@
 
 import torch
-
+import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
+class Normalize(nn.Module):
+    r"""Performs :math:`L_p` normalization of inputs over specified dimension.
+    Does:
+    .. math::
+        v = \frac{v}{\max(\lVert v \rVert_p, \epsilon)}
+    for each subtensor v over dimension dim of input. Each subtensor is
+    flattened into a vector, i.e. :math:`\lVert v \rVert_p` is not a matrix
+    norm.
+    With default arguments normalizes over the second dimension with Euclidean
+    norm.
+    Args:
+        p (float): the exponent value in the norm formulation. Default: 2
+        dim (int): the dimension to reduce. Default: 1
+    """
+    def __init__(self, p=2, dim=1):
+        super(Normalize, self).__init__()
+        self.p = p
+        self.dim = dim
 
-def variable_summaries(name:str, var):
-    writer.add_histogram(name, var, iteration)
-    mean = var.mean()
-    writer.add_scalar('mean/' + name, var.mean(), iteration) 
-    stddev = torch.sqrt(torch.mean(torch.sqrt(var - mean)))
-    writer.add_scalar('stddev/' + name, stddev, iteration)
+    def forward(self, x):
+        return F.normalize(x, self.p, self.dim, eps=1e-8)
 
 class MySummaryWriter(SummaryWriter):
     def __init__(self, log_dir=None, comment='', purge_step=None, max_queue=10,
@@ -21,20 +35,37 @@ class MySummaryWriter(SummaryWriter):
     def addStep(self):
         self.global_step += 1
 
-    def variable_summaries(self, tag:str, name:str, var):
-        if self.global_step % 500 != 0:
-            return
-        self.add_histogram(name, var)
-        mean = var.mean()
-        self.add_scalar(tag+'/mean/' + name, var.mean()) 
-        stddev = torch.sqrt(torch.mean(torch.sqrt(var - mean)))
-        self.add_scalar(tag+'/stddev/' + name, stddev)
+    def model_para_summaries(self, model:torch.nn.Module):
+        for key,val in model.named_parameters():
+            if key.split('.')[-1] not in ('weight', 'bias'):
+                continue
+            tag = "para_" + key.split('.')[0]
+            self.variable_summaries(tag, key, val)
+    
+    def model_para_grad_summaries(self, model:torch.nn.Module):
+        for key,val in model.named_parameters():
+            if key.split('.')[-1] not in ('weight', 'bias'):
+                continue
+            tag = 'grad_'+ key.split('.')[0]
+            
+            if not val.grad:
+                self.variable_summaries(tag, key, val.grad)
 
-    def add_scalar(self, tag, scalar_value, iteration=None, walltime=None):
+    def variable_summaries(self, tag:str, name:str, var:torch.Tensor):
+        if self.global_step % 500 != 0:
+            return 
+        self.add_histogram(name, var)
+        self.add_scalar(tag+"/mean/"+name,var.mean())
+        self.add_scalar(tag+"/max/"+name,  var.max()) 
+        self.add_scalar(tag+"/min/"+name,  var.min()) 
+        stddev = torch.sqrt(torch.var(var))
+        self.add_scalar(tag+'/stddev/'+name, stddev)
+
+    def add_scalar(self, tag:str, scalar_value, iteration=None, walltime=None):
         super(MySummaryWriter, self).add_scalar(tag, 
                 scalar_value, iteration or self.global_step, walltime)
 
-    def add_scalars(self, main_tag, tag_scalar_dict, walltime=None):
+    def add_scalars(self, main_tag, tag_scalar_dict):
         super(MySummaryWriter, self).add_scalars(main_tag, 
                 tag_scalar_dict, self.global_step, walltime)
     

@@ -11,6 +11,8 @@ import numpy as np
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+random.seed(1123)
+
 class RandomPadding:
     def __init__(self, target_Size, index=0):
         self.target_Size = target_Size
@@ -339,7 +341,15 @@ class Scale_Fixed:
         return imgmap
 
 class RandomResize:
+    def __init__(self, scale=(1,1,2)):
+        if isinstance(scale, collections.abc.Iterable):
+            assert len(scale) == 2
+            self.scale = scale
+        else:
+            raise ValueError("{} not supported".format(type(scale)))
+
     def __call__(self, imgmap, scale=(1, 1.2)):
+        scale = self.scale
         img, *_ = imgmap
         imgmap = list(imgmap)
         assert imgmap[0].size == imgmap[1].size, "{0} and {1}".format(imgmap[0].size, imgmap[1].size)

@@ -27,7 +27,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-
+import torch.nn as nn
 from .collections import AttrDict
 
 __all__ = ['config', 'cfg_from_file', 'cfg_from_list']
@@ -36,6 +36,7 @@ __C = AttrDict()
 config = __C
 
 __C.DEBUG = False
+__C.EXPERIMENT_NAME = ""
 
 # Training options
 __C.DATASET = AttrDict()
@@ -60,6 +61,13 @@ __C.TRAIN.DATASET_SIZE = 234643
 __C.TRAIN.DROPOUT_RATE = 0.0
 __C.TRAIN.TEST_AFTER_TRAIN = False
 
+__C.TRAIN.LOSS = AttrDict()
+__C.TRAIN.LOSS.se_loss= False
+__C.TRAIN.LOSS.se_weight= 0.2
+__C.TRAIN.LOSS.aux= True
+__C.TRAIN.LOSS.aux_weight= 0.4
+__C.TRAIN.LOSS.weight= None
+
 # Train model options
 __C.MODEL = AttrDict()
 __C.MODEL.NUM_CLASSES = -1
@@ -68,6 +76,7 @@ __C.MODEL.MODEL_NAME = ''
 # model
 __C.MODEL.BACKBONE = ""
 __C.MODEL.HEAD=""
+__C.MODEL.MID=""
 __C.MODEL.INCHANNEL=[]
 __C.MODEL.SCALES=[]
 __C.MODEL.FACTOR=1
@@ -92,18 +101,44 @@ __C.MODEL.BN_INIT_GAMMA = 1.0
 __C.MODEL.USE_AFFINE = False
 
 # Non-local Block
-__C.MODEL.NONLOCAL = AttrDict()
-__C.MODEL.NONLOCAL.USE = False
-__C.MODEL.NONLOCAL.DIM =  2 # 1D,2D,3D version
-__C.MODEL.NONLOCAL.TYPE= 'DotProduct' # DotProduct,LocalGaussian,LocalConcatenation,EmbeddedGaussian
+__C.MODEL.NONLOCAL = False
+__C.MODEL.JPU = False
 
-__C.MODEL.NONLOCAL.USE_SOFTMAX = True
-__C.MODEL.NONLOCAL.USE_BN = True
-__C.MODEL.NONLOCAL.USE_AFFINE = False
 
-__C.MODEL.NONLOCAL.BN_MOMENTUM = 0.9
-__C.MODEL.NONLOCAL.BN_EPSILON = 1.0000001e-5
-__C.MODEL.NONLOCAL.BN_INIT_GAMMA = 0.0
+__C.PSP = AttrDict()
+__C.PSP.sizes = [1,2,3,6]
+__C.PSP.deep_features_size = 256 #default
+__C.PSP.drop_1 = 0.3
+__C.PSP.drop_2 = 0.15
+
+__C.NONLOCAL = AttrDict()
+__C.NONLOCAL.DIM =  2 # 1D,2D,3D version
+__C.NONLOCAL.TYPE= 'DotProduct' # DotProduct,LocalGaussian,LocalConcatenation,EmbeddedGaussian
+
+__C.NONLOCAL.USE_SOFTMAX = True
+__C.NONLOCAL.USE_AFFINE = False
+
+__C.NONLOCAL.USE_BN = True
+__C.NONLOCAL.BN_PARA = AttrDict()
+__C.NONLOCAL.BN_PARA.momentum = 0.9
+__C.NONLOCAL.BN_PARA.epsilon = 1.0000001e-5
+__C.NONLOCAL.BN_PARA.init_gamma = 0.0
+__C.NONLOCAL.PARA = AttrDict()
+__C.NONLOCAL.PARA.in_channels = 1
+__C.NONLOCAL.PARA.inter_channels=None 
+__C.NONLOCAL.PARA.sub_sample=True
+__C.NONLOCAL.PARA.bn_layer=True
+
+__C.JPU = AttrDict()
+__C.JPU.BN_PARA = AttrDict()
+__C.JPU.BN_PARA.momentum = 0.9
+__C.JPU.BN_PARA.epsilon = 1.0000001e-5
+__C.JPU.BN_PARA.init_gamma = 0.0
+__C.JPU.PARA = AttrDict()
+__C.JPU.PARA.in_channels = 1
+__C.JPU.PARA.width=None 
+__C.JPU.PARA.norm_layer=True
+__C.JPU.PARA.up_kwargs=True
 
 
 # for ResNet or ResNeXt only
@@ -118,7 +153,7 @@ __C.RESNETS.deep_base=False # trick in PSPnet
 __C.RESNETS.groups=1
 __C.RESNETS.output_size=8
 __C.RESNETS.replace_stride_with_dilation=None
-__C.RESNETS.norm_layer = None
+__C.RESNETS.norm_layer = nn.BatchNorm2d
 
 # Test
 __C.TEST = AttrDict()
@@ -175,6 +210,15 @@ __C.DATALOADER.num_workers = 4
 __C.DATALOADER.pin_memory = True
 
 
+
+
+BN = {
+    'none'  :None,
+    'bn'    :nn.BatchNorm2d,
+    'syncbn':nn.SyncBatchNorm
+}
+
+
 def log_cfg():
     # import logging
     import time
@@ -221,9 +265,7 @@ def assert_and_infer_cfg():
 def merge_dicts(dict_a, dict_b):
     from ast import literal_eval
     for key, value in dict_a.items():
-       
         if key not in dict_b:
-            #dict_b[key]= value
             raise KeyError('Invalid key in config file: {}'.format(key))
         if isinstance(value, dict):
             value = AttrDict(value) 
@@ -245,9 +287,10 @@ def merge_dicts(dict_a, dict_b):
                 merge_dicts(dict_a[key], dict_b[key])
             except BaseException:
                 raise Exception('Error under config key: {}'.format(key))
-        # elif isinstance(value, dict):
-        #     dict_b[key] = AttrDict(value)
         else:
+            if key == 'norm_layer':
+                import pdb; pdb.set_trace()
+                value = BN[value]        
             dict_b[key] = value
 
 

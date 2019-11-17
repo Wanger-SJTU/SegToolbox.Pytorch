@@ -3,7 +3,6 @@ import torch.nn as nn
 
 from .head import heads
 from .backbone import backbones
-from .utils.misc import variable_summaries
 
 __all__ = ["createSegModel"]
 
