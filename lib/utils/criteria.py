@@ -73,7 +73,9 @@ class SegmentationLosses(CrossEntropyLoss2d):
                 not isinstance(x, torch.Tensor) else [x]
         inputs = func(inputs)
         if not self.se_loss and not self.aux:
-            return super(SegmentationLosses, self).forward(*inputs)
+            res = super(SegmentationLosses, self).forward(*inputs)
+            return res,
+
         elif self.se_loss:# ??
             pred1, pred2, target = tuple(inputs)
             loss1 = super(SegmentationLosses, self).forward(pred1, target)

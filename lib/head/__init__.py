@@ -20,24 +20,36 @@ from .non_local_embedded_gaussian import NONLocalBlock2D as NonlocalEmbeddedGaus
 from .non_local_embedded_gaussian import NONLocalBlock3D as NonlocalEmbeddedGaussian3D
 
 from .PSPNet import PSPHead
+from .JPU import JPU
 
 __all__ = ['heads']
 
+def get_nonlocal_block(cfg):
+    key = "Nonlocal{}{}D".format(cfg.NONLOCAL.TYPE, cfg.NONLOCAL.DIM)
+    return nonlocal_opts[key.lower()](cfg)
+    
+
 heads = {
+'none':None,
+'jpu' :JPU,
 'fcn8s':FCN8s,
 'fcn16s':FCN16s,
 'fcn32s':FCN32s,
 'psphead':PSPHead,
-'NonlocalDotProduct1D':NonlocalDotProduct1D,
-'NonlocalDotProduct2D':NonlocalDotProduct2D,
-'NonlocalDotProduct3D':NonlocalDotProduct3D,
-'NonlocalLocalGaussian1D':NonlocalLocalGaussian1D,
-'NonlocalLocalGaussian2D':NonlocalLocalGaussian2D,
-'NonlocalLocalGaussian3D':NonlocalLocalGaussian3D,
-'NonlocalLocalConcatenation1D':NonlocalLocalConcatenation1D,
-'NonlocalLocalConcatenation2D':NonlocalLocalConcatenation2D,
-'NonlocalLocalConcatenation3D':NonlocalLocalConcatenation3D,
-'NonlocalEmbeddedGaussian1D':NonlocalEmbeddedGaussian1D,
-'NonlocalEmbeddedGaussian2D':NonlocalEmbeddedGaussian2D,
-'NonlocalEmbeddedGaussian3D':NonlocalEmbeddedGaussian3D
+'nonlocal': get_nonlocal_block
+}
+
+nonlocal_opts = {
+'nonlocaldotproduct1d':NonlocalDotProduct1D,
+'nonlocaldotproduct2d':NonlocalDotProduct2D,
+'nonlocaldotproduct3d':NonlocalDotProduct3D,
+'nonlocallocalgaussian1d':NonlocalLocalGaussian1D,
+'nonlocallocalgaussian2d':NonlocalLocalGaussian2D,
+'nonlocallocalgaussian3d':NonlocalLocalGaussian3D,
+'nonlocallocalconcatenation1d':NonlocalLocalConcatenation1D,
+'nonlocallocalconcatenation2d':NonlocalLocalConcatenation2D,
+'nonlocallocalconcatenation3d':NonlocalLocalConcatenation3D,
+'nonlocalembeddedgaussian1d':NonlocalEmbeddedGaussian1D,
+'nonlocalembeddedgaussian2d':NonlocalEmbeddedGaussian2D,
+'nonlocalembeddedgaussian3d':NonlocalEmbeddedGaussian3D
 }

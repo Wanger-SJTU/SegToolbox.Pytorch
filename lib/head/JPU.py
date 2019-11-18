@@ -21,7 +21,7 @@ class SeparableConv2d(nn.Module):
         super(SeparableConv2d, self).__init__()
 
         self.conv1 = nn.Conv2d(inplanes, inplanes, kernel_size, stride, padding, dilation, groups=inplanes, bias=bias)
-        self.bn = nn.BatchNorm(inplanes)
+        self.bn = nn.BatchNorm2d(inplanes)
         self.pointwise = nn.Conv2d(inplanes, planes, 1, 1, 0, 1, 1, bias=bias)
 
     def forward(self, x):
@@ -31,9 +31,12 @@ class SeparableConv2d(nn.Module):
         return x
 
 class JPU(nn.Module):
-    def __init__(self, in_channels, width=512, norm_layer=None, up_kwargs=None):
+    def __init__(self, cfg):
         super(JPU, self).__init__()
-        self.up_kwargs = up_kwargs
+        in_channels =cfg.JPU.PARA.in_channels
+        width       =cfg.JPU.PARA.width 
+        norm_layer  =cfg.JPU.PARA.norm_layer
+        self.up_kwargs = cfg.JPU.PARA.up_kwargs
 
         self.conv5 = nn.Sequential(
             nn.Conv2d(in_channels[-1], width, 3, padding=1, bias=False),
@@ -47,7 +50,7 @@ class JPU(nn.Module):
             nn.Conv2d(in_channels[-3], width, 3, padding=1, bias=False),
             norm_layer(width),
             nn.ReLU(inplace=True))
-
+        
         self.dilation1 = nn.Sequential(SeparableConv2d(3*width, width, kernel_size=3, padding=1, dilation=1, bias=False),
                                        norm_layer(width),
                                        nn.ReLU(inplace=True))
@@ -64,9 +67,9 @@ class JPU(nn.Module):
     def forward(self, *inputs):
         feats = [self.conv5(inputs[-1]), self.conv4(inputs[-2]), self.conv3(inputs[-3])]
         _, _, h, w = feats[-1].size()
-        feats[-2] = F.upsample(feats[-2], (h, w), **self.up_kwargs)
-        feats[-3] = F.upsample(feats[-3], (h, w), **self.up_kwargs)
+        feats[-2] = F.interpolate(feats[-2], (h, w), **self.up_kwargs)
+        feats[-3] = F.interpolate(feats[-3], (h, w), **self.up_kwargs)
         feat = torch.cat(feats, dim=1)
         feat = torch.cat([self.dilation1(feat), self.dilation2(feat), self.dilation3(feat), self.dilation4(feat)], dim=1)
 
-        return inputs[0], inputs[1], inputs[2], feat
+        return list(inputs[:-1])+[feat]

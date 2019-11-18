@@ -2,6 +2,7 @@
 import argparse
 import os
 import time
+import ast
 
 class Options():
   def __init__(self):
@@ -11,9 +12,10 @@ class Options():
   def initialize(self):
     # self.parser.add_argument('--data', required=True, help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
     self.parser.add_argument('--gpu_ids', type=str, default='1', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
-    self.parser.add_argument('--pretrain', type=str, default='', help='')
+    self.parser.add_argument('--pretrain', type=ast.literal_eval, default='True', help='')
     self.parser.add_argument('--config', type=str, default='./configs/voc_vgg_fcn.yaml')
-    self.parser.add_argument('--ratio', type=float, default=1)
+    self.parser.add_argument('--ratio',  type=float, default=1)
+    self.parser.add_argument('--hist',   type=ast.literal_eval, default='True', help='')
     self.initialized = True
   
   def parse(self):

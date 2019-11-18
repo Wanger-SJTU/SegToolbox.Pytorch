@@ -3,9 +3,11 @@ DATASET:
   DIR: /home/amax/data/PASCAL
   IGNOREIDX: 21
 
+EXPERIMENT_NAME: voc_resnet18_fcn
+
 MODEL:
   NUM_CLASSES: 21
-  MODEL_NAME: resnet18_voc_fcn
+  MODEL_NAME: resnet18_fcn
   BACKBONE: resnet18
   HEAD: fcn16s
   INCHANNEL: [64, 64, 128, 256, 512] #[4, 8, 16, 32, 64]

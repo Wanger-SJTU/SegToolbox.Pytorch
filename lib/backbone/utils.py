@@ -18,7 +18,8 @@ def load_state_dict(src, target):
             try:
                 target.state_dict()[k].copy_(torch.from_numpy(v))
             except:
-                pdb.set_trace()   
+                print("{} skipped".format(k))
+                continue   
     set_requires_grad(target, True)
     return target
 

@@ -45,7 +45,7 @@ class PSPHead(nn.Module):
         self.final = nn.Sequential(nn.Conv2d(64, cfg.MODEL.NUM_CLASSES, kernel_size=1))
 
         self.classifier = nn.Sequential(
-            nn.Linear(cfg.MODEL.INCHANNEL[-3], 256),
+            nn.Linear(cfg.MODEL.INCHANNEL[-2], 256),
             nn.ReLU(True),
             nn.Linear(256, cfg.MODEL.NUM_CLASSES))
 
@@ -60,7 +60,6 @@ class PSPHead(nn.Module):
         p = self.drop_2(p)
         p = self.up_3(p)
         p = self.drop_2(p)
-
         auxiliary = F.adaptive_max_pool2d(input=class_f, output_size=(1, 1)).view(-1, class_f.size(1))
         return self.final(p), self.classifier(auxiliary)
         

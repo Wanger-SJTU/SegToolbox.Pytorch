@@ -3,10 +3,12 @@ DATASET:
   DIR: /home/amax/data/PASCAL
   IGNOREIDX: 21
 
+EXPERIMENT_NAME: voc_vgg_voc_fcn16s_nobn
+
 MODEL:
   NUM_CLASSES: 21
-  MODEL_NAME: vgg_voc_fcn16s_nobn
-  BACKBONE: VGG
+  MODEL_NAME: vgg_fcn16s_nobn
+  BACKBONE: vgg
   HEAD: fcn16s
   INCHANNEL: [64, 128, 256, 512, 512] #[2, 4, 8, 16, 32]
   SCALES: [1, 2, 4, 16, 2] # upscale factor for each featuremap

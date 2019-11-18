@@ -40,10 +40,11 @@ cfg = config
 cfg_from_file(opts.config)
 
 cfg.TRAIN.DROPOUT_RATE = opts.ratio
+cfg.MODEL.PRETRAIN = opts.pretrain
 if cfg.MODEL.PRETRAIN:
-    cfg.MODEL.MODEL_NAME += "/pretrain"
+    cfg.EXPERIMENT_NAME += "/pretrain"
 else:
-    cfg.MODEL.MODEL_NAME += "/scratch"
+    cfg.EXPERIMENT_NAME += "/scratch"
 
 log_cfg() # record training hyper-parameters
 
@@ -124,7 +125,8 @@ def train():
             new_lbl = reMaskLabel(item[1].numpy().copy(), opts.ratio, cfg.DATASET.IGNOREIDX)
             new_lbl = torch.from_numpy(new_lbl).long().cuda()
             lbl_true = item[1]
-            probs,*others = model(img)
+            outputs = model(img)
+            probs,*others = [outputs,] if isinstance(outputs, torch.Tensor) else outputs
             optim.zero_grad()
             loss,*loss_detail = Seg_loss(probs, others, new_lbl)# pred, lbl            loss.backward()
             optim.step()
@@ -176,7 +178,8 @@ def val(epoch):
         img, lbl = item[0].cuda(), item[1].cuda()
         pos = list(map(int, item[2].numpy()[0])) if len(item) > 2 else None
         with torch.no_grad():
-            probs,*others = model(img) 
+            outputs = model(img)
+            probs,*others = [outputs,] if isinstance(outputs, torch.Tensor) else outputs
             loss,*loss_detail = Seg_loss(probs, others, lbl)# pred, lbl 
         
         lbl_pred = probs.data.max(1)[1].cpu().numpy()
@@ -196,8 +199,8 @@ def val(epoch):
         metrics = label_accuracy_score(lbl_true, lbl_pred, cfg.MODEL.NUM_CLASSES)
         
         if not loss_detail:
-                for k,v in loss_detail:
-                    writer.add_scalar("val/"+k,v.data.detach().item()) 
+            for k,v in loss_detail:
+                writer.add_scalar("val/"+k,v.data.detach().item()) 
         writer.add_scalar("val/loss",    loss.data.detach().item(), val_idx)
         writer.add_scalar("val/acc",     metrics[0],       val_idx)
         writer.add_scalar("val/acc_cls", metrics[1],       val_idx)
@@ -244,10 +247,15 @@ def warmUpModel():
         for item in loader: 
             writer.addStep()
             img = item[0].cuda()
-            new_lbl = reMaskLabel(item[1].numpy().copy(), opts.ratio, cfg.DATASET.IGNOREIDX)
+            new_lbl = reMaskLabel(item[1].numpy().copy(), 
+                        opts.ratio, cfg.DATASET.IGNOREIDX)
             new_lbl = torch.from_numpy(new_lbl).long().cuda()
             lbl_true = item[1] 
-            probs = model(img)
+            
+            outputs = model(img)
+            probs,*others = [outputs,] if isinstance(outputs, torch.Tensor) \
+                                       else outputs
+
             optim.zero_grad()
             loss = CrossEntropyLoss2d(probs, new_lbl, cfg.DATASET.IGNOREIDX)
             loss.backward()
@@ -258,13 +266,17 @@ def warmUpModel():
             lbl_new  = new_lbl.data.cpu().numpy()
             src_img  = img.data.cpu().numpy() 
             metrics = label_accuracy_score(lbl_true, lbl_pred, cfg.MODEL.NUM_CLASSES)
-           
+
+            if not loss_detail:
+                for k,v in loss_detail:
+                    writer.add_scalar("train/"+k,v.data.detach().item()) 
+
             writer.add_scalar("train/loss",loss.data.detach().item()) 
             writer.add_scalar("train/acc",     metrics[0])
             writer.add_scalar("train/acc_cls", metrics[1])
             writer.add_scalar("train/mean_iu", metrics[2])
             writer.add_scalar("train/fwavacc", metrics[3])
-            #writer.add_scalar("train/lr",      lr)
+            # writer.add_scalar("train/lr",      lr)
             loader.set_description(desc="WARMUP: [{}:{}] loss: {:.2f} iou:{:.2f}".format(
                 epoch, writer.global_step, loss.data.item(), metrics[2]))
             if writer.global_step % 100 == 0:

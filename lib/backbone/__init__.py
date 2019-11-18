@@ -10,10 +10,6 @@ from .vgg import VGGFeatures
 from .resnet import resnet
 
 from .resnet_diltated import resnet_dilated
-from .resnet_diltated import resnet_dilated
-from .resnet_diltated import resnet_dilated
-from .resnet_diltated import resnet_dilated
-from .resnet_diltated import resnet_dilated
 
 __all__ = ['backbones']
 

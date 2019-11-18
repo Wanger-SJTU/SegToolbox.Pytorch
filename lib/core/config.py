@@ -64,7 +64,7 @@ __C.TRAIN.TEST_AFTER_TRAIN = False
 __C.TRAIN.LOSS = AttrDict()
 __C.TRAIN.LOSS.se_loss= False
 __C.TRAIN.LOSS.se_weight= 0.2
-__C.TRAIN.LOSS.aux= True
+__C.TRAIN.LOSS.aux= False
 __C.TRAIN.LOSS.aux_weight= 0.4
 __C.TRAIN.LOSS.weight= None
 
@@ -113,6 +113,7 @@ __C.PSP.drop_2 = 0.15
 
 __C.NONLOCAL = AttrDict()
 __C.NONLOCAL.DIM =  2 # 1D,2D,3D version
+
 __C.NONLOCAL.TYPE= 'DotProduct' # DotProduct,LocalGaussian,LocalConcatenation,EmbeddedGaussian
 
 __C.NONLOCAL.USE_SOFTMAX = True
@@ -124,10 +125,11 @@ __C.NONLOCAL.BN_PARA.momentum = 0.9
 __C.NONLOCAL.BN_PARA.epsilon = 1.0000001e-5
 __C.NONLOCAL.BN_PARA.init_gamma = 0.0
 __C.NONLOCAL.PARA = AttrDict()
+__C.NONLOCAL.PARA.index =  4 # channel for nonlocal
 __C.NONLOCAL.PARA.in_channels = 1
-__C.NONLOCAL.PARA.inter_channels=None 
+__C.NONLOCAL.PARA.inter_channels = 512 
 __C.NONLOCAL.PARA.sub_sample=True
-__C.NONLOCAL.PARA.bn_layer=True
+__C.NONLOCAL.PARA.use_bn=True
 
 __C.JPU = AttrDict()
 __C.JPU.BN_PARA = AttrDict()
@@ -135,11 +137,12 @@ __C.JPU.BN_PARA.momentum = 0.9
 __C.JPU.BN_PARA.epsilon = 1.0000001e-5
 __C.JPU.BN_PARA.init_gamma = 0.0
 __C.JPU.PARA = AttrDict()
-__C.JPU.PARA.in_channels = 1
-__C.JPU.PARA.width=None 
-__C.JPU.PARA.norm_layer=True
-__C.JPU.PARA.up_kwargs=True
-
+__C.JPU.PARA.in_channels = []
+__C.JPU.PARA.width=512 
+__C.JPU.PARA.norm_layer = nn.BatchNorm2d
+__C.JPU.PARA.up_kwargs  = AttrDict()
+__C.JPU.PARA.up_kwargs.mode= 'bilinear'
+__C.JPU.PARA.up_kwargs.align_corners=True
 
 # for ResNet or ResNeXt only
 __C.RESNETS = AttrDict()
@@ -210,8 +213,6 @@ __C.DATALOADER.num_workers = 4
 __C.DATALOADER.pin_memory = True
 
 
-
-
 BN = {
     'none'  :None,
     'bn'    :nn.BatchNorm2d,
@@ -231,7 +232,6 @@ def log_cfg():
 
     if not os.path.exists(os.path.dirname(file_name)):
         os.makedirs(os.path.dirname(file_name))
-
     with open(file_name, 'w' ,encoding='utf8') as f:
         # f.write('------------ Configs -------------\n')
         yaml.dump(__C, f)
@@ -261,10 +261,12 @@ def assert_and_infer_cfg():
     assert __C.TEST.BATCH_SIZE % __C.NUM_GPUS == 0, \
         "Test batch size should be multiple of num_gpus."
 
-
 def merge_dicts(dict_a, dict_b):
     from ast import literal_eval
     for key, value in dict_a.items():
+        if key == 'norm_layer':
+            value = BN[value]
+            
         if key not in dict_b:
             raise KeyError('Invalid key in config file: {}'.format(key))
         if isinstance(value, dict):
@@ -288,11 +290,7 @@ def merge_dicts(dict_a, dict_b):
             except BaseException:
                 raise Exception('Error under config key: {}'.format(key))
         else:
-            if key == 'norm_layer':
-                import pdb; pdb.set_trace()
-                value = BN[value]        
             dict_b[key] = value
-
 
 def cfg_from_file(filename):
     """Load a config file and merge it into the default options."""
@@ -300,8 +298,7 @@ def cfg_from_file(filename):
     with open(filename, 'r') as fopen:
         yaml_config = AttrDict(yaml.load(fopen, Loader=yaml.FullLoader))
     merge_dicts(yaml_config, __C)
-    
-
+ 
 def cfg_from_list(args_list):
     """Set config keys via list (e.g., from command line)."""
     from ast import literal_eval

@@ -3,6 +3,10 @@ test.py
 watch_run.py
 .vscode/
 *__pycache__*
+*.log
+
+TODO.md
+analys.py
 data/basePipline.py
 lib/utils/dali*
 scripts/

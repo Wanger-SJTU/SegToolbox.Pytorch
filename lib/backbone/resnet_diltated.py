@@ -62,7 +62,6 @@ class BasicBlock(nn.Module):
 
         return out
 
-
 class Bottleneck(nn.Module):
     """ResNet Bottleneck
     """
@@ -139,7 +138,8 @@ class ResNet(nn.Module):
     """
     # pylint: disable=unused-variable
     def __init__(self, block, layers, dilated=True,
-                 deep_base=True, norm_layer=nn.BatchNorm2d, output_size=8,**kwargs):
+                 deep_base=True, norm_layer=nn.BatchNorm2d, 
+                 output_size=8, zero_init_residual=False, **kwargs):
         self.inplanes = 128 if deep_base else 64
         super(ResNet, self).__init__()
         if deep_base:
@@ -155,10 +155,11 @@ class ResNet(nn.Module):
         else:
             self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
                                    bias=False)
+        
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        
+
         self.layer1 = self._make_layer(block, 64, layers[0], norm_layer=norm_layer)
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, norm_layer=norm_layer)
 
@@ -183,11 +184,23 @@ class ResNet(nn.Module):
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
             elif isinstance(m, norm_layer):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+        
+        # Zero-initialize the last BN in each residual branch,
+        # so that the residual branch starts with zeros,
+        # and each residual block behaves like an identity.
+        # This improves the model by 0.2~0.3% according
+        # to https://arxiv.org/abs/1706.02677
+        if zero_init_residual:
+            for m in self.modules():
+                if isinstance(m, Bottleneck):
+                    nn.init.constant_(m.bn3.weight, 0)
+                elif isinstance(m, BasicBlock):
+                    nn.init.constant_(m.bn2.weight, 0)
+
 
     def _make_layer(self, block, planes, blocks, stride=1, dilation=1, norm_layer=None):
         downsample = None
@@ -230,7 +243,6 @@ class ResNet(nn.Module):
 
 def resnet_dilated(cfg):
     import sys
-    
     try:
         return getattr(sys.modules[__name__], cfg.MODEL.BACKBONE)(pretrained=cfg.MODEL.PRETRAIN,**cfg.RESNETS)
     except AttributeError:

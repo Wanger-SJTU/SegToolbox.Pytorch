@@ -65,7 +65,7 @@ class MySummaryWriter(SummaryWriter):
         super(MySummaryWriter, self).add_scalar(tag, 
                 scalar_value, iteration or self.global_step, walltime)
 
-    def add_scalars(self, main_tag, tag_scalar_dict):
+    def add_scalars(self, main_tag, tag_scalar_dict, iteration=None, walltime=None):
         super(MySummaryWriter, self).add_scalars(main_tag, 
                 tag_scalar_dict, self.global_step, walltime)
     
