@@ -4,7 +4,7 @@ import torch.nn as nn
 from .head import heads
 from .backbone import backbones
  
-__all__ = ["createSegModel"]
+__all__ = ["createSegModel", "buildModel"]
 
 class SegModel(nn.Module):
     def __init__(self, cfg, writer=None):
@@ -18,16 +18,42 @@ class SegModel(nn.Module):
         
     def forward(self, x):
         features = self.features(x) 
-        if self.training and self.opts.TENSORBOARD.HIST and \
-            self.writer is not None:
-            variable_summaries(self.writer, *features)
+        # if self.training and self.opts.TENSORBOARD.HIST and \
+        #     self.writer is not None:
+        #     # variable_summaries(self.writer, *features)
+        #     # self.writer.model_para_summaries(self)
         if self.mid is not None:
             features = self.mid(*features)
         return self.head(*features)
+
+class Model(nn.Module):
+    def __init__(self, cfg, writer=None):
+        super(Model, self).__init__()
+        self.name = cfg.MODEL.MODEL_NAME
+        self.features = backbones[cfg.MODEL.BACKBONE](cfg)
+        self.head = heads[cfg.MODEL.HEAD](cfg)
+        mid = heads.get(cfg.MODEL.MID.lower(), None)
+        self.mid = mid(cfg) if mid is not None else mid
+        self.opts = cfg
+        self.writer = writer
+        
+    def forward(self, x):
+        features = self.features(x) 
+        # if self.training and self.opts.TENSORBOARD.HIST and \
+        #     self.writer is not None:
+        #     # variable_summaries(self.writer, *features)
+        #     # self.writer.model_para_summaries(self)
+        if self.mid is not None:
+            features = self.mid(*features)
+        return self.head(*features)
+
 
 def variable_summaries(writer, *features):
     for i,f in enumerate(features):
         writer.variable_summaries("hist", "featuremap"+str(i), f)
 
 def createSegModel(cfg, writer=None):
+    return SegModel(cfg, writer)
+
+def buildModel(cfg, writer=None):
     return SegModel(cfg, writer)

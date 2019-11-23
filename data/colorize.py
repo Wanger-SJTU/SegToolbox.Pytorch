@@ -17,6 +17,7 @@ from .voc import VOC_labels
 
 label_info = {
     'voc':VOC_labels,
+    'voc_fix':VOC_labels,
     'ade2k':ADE2K_labels
 }
 #--------------------------------------------------------------------------------

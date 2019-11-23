@@ -20,10 +20,10 @@ class ADE2K(BaseDataset):
                  target_transform=None,
                  transforms=None,
                  loadMemory=False,
-                 auxiliaryLoss=False):
+                 path=False):
         super(ADE2K, self).__init__(root, image_set, transform, 
                                     target_transform, transforms, 
-                                    loadMemory, auxiliaryLoss)
+                                    loadMemory, path)
                                     
         assert image_set in ("train", "val")
         

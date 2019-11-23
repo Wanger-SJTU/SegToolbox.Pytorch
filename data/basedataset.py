@@ -27,7 +27,7 @@ class BaseDataset(dataset.Dataset):
                  target_transform=None,
                  transforms=None,
                  loadMemory=False,
-                 auxiliaryLoss=False):
+                 Path=False):
         super(BaseDataset, self).__init__()
         assert image_set in ("train", "val", "trainval")
         self.root = root
@@ -37,7 +37,7 @@ class BaseDataset(dataset.Dataset):
         self.loadMemory = loadMemory
         self.images = []
         self.masks  = []
-        self.auxiliaryLoss = auxiliaryLoss
+        self.Path = Path
         
         assert (len(self.images) == len(self.masks))
 
@@ -66,10 +66,8 @@ class BaseDataset(dataset.Dataset):
         if self.transforms is not None:
             imgmap = self.transforms(imgmap)
         
-        if self.auxiliaryLoss:
-            cls_lbl = imgmap[1].unique()
-            cls_lbl = cls_lbl[:-1] if 255 in cls_lbl else cls_lbl
-            return imgmap, cls_lbl
+        if self.Path:
+            return imgmap, self.masks[index]
         return imgmap#, self.masks[index]
 
     def __len__(self):

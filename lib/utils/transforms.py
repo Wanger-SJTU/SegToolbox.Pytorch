@@ -19,7 +19,8 @@ class RandomPadding:
         self.index = index
         
     def __call__(self, imgmap):
-        img,lbl = imgmap
+        imgmap = list(imgmap)
+        img,*_ = imgmap
         left,right,top,down = 0, 0, 0, 0
         if isinstance(img, Image.Image):
             shape = img.size
@@ -35,8 +36,10 @@ class RandomPadding:
         top  = random.randint(0, self.target_Size[1]-shape[1])
         right = self.target_Size[0]-shape[0] - left
         down  = self.target_Size[1]-shape[1] - top
-        return ImageOps.expand(img, border=(left, top, right, down), fill=0), \
-               ImageOps.expand(lbl, border=(left, top, right, down), fill=self.index)
+        for i in range(len(imgmap)):
+            fill = 0 if i == 0 else self.index
+            imgmap[i] = ImageOps.expand(imgmap[i], border=(left, top, right, down), fill=fill)
+        return imgmap
 
 class RandomCropPad:
     '''
@@ -76,6 +79,7 @@ class Scale:
         self.interpolation = interpolation
 
     def __call__(self, imgmap): 
+        imgmap = list(imgmap)
         if isinstance(self.size, int):
             w, h = imgmap[0].size
             if (w <= h and w == self.size) or (h <= w and h == self.size):
@@ -108,6 +112,7 @@ class CenterCrop:
             self.size = size
 
     def __call__(self, imgmap):
+        imgmap = list(imgmap)
         w, h = imgmap[0].size
         th, tw = self.size
         x1 = int(round((w - tw) / 2.))
@@ -131,7 +136,8 @@ class Resize:
         self.interpolation = interpolation
 
     def __call__(self, imgmap):
-        for i in range(2):
+        imgmap = list(imgmap)
+        for i in range(len(imgmap)):
             if isinstance(imgmap[i], Image.Image):
                 imgmap[i] = imgmap[i].resize(self.size, self.interpolation)
             else:
@@ -146,7 +152,7 @@ class RandomCropWithPOS:
             self.size = size
 
     def __call__(self, imgmap):
-        # print(self.size)
+        imgmap = list(imgmap)
         w, h = imgmap[0].size
         if self.size is not None:
             th, tw = self.size
@@ -212,6 +218,7 @@ class RandomSizedCrop:
         self.interpolation = interpolation
 
     def __call__(self, imgmap):
+        imgmap = list(imgmap)
         img, *_ = imgmap
         for attempt in range(10):
             area = img.size[0] * img.size[1]
@@ -250,6 +257,7 @@ class RandomHorizontalFlip:
     def __init__(self, ratio=0.5):
         self.ratio = 0.5
     def __call__(self, imgmap):
+        imgmap = list(imgmap)
         if random.uniform(0,1) < self.ratio:
             for idx in range(len(imgmap)):
                 if isinstance(imgmap[idx], Image.Image):
@@ -263,6 +271,7 @@ class RandomVerticalFlip:
     def __init__(self, ratio=0.5):
         self.ratio = 0.5
     def __call__(self, imgmap):
+        imgmap = list(imgmap)
         if random.uniform(0, 1) < self.ratio:
             for idx in range(len(imgmap)):
                 if isinstance(imgmap[idx], Image.Image):
@@ -365,18 +374,21 @@ class RandomResize:
 
 class ToTensor:
     def __call__(self, imgmap):
-        img,lbl = imgmap
+        imgmap = list(imgmap)
+        img,*lbl = imgmap
         if isinstance(img, Image.Image):
             img = np.array(img)
-            lbl = np.array(lbl)
+            
         if len(img.shape) == 2:
             img = img[np.newaxis,:,:]
             img = np.concatenate([img,img,img], axis=0)
         if img.shape[-1] == 3:
             img = img.transpose(2,0,1)
         img = torch.from_numpy(img).float()
-        lbl = torch.from_numpy(lbl).long()
-        return img, lbl
+        for i in range(len(lbl)):
+            lbl[i] = np.array(lbl[i])
+            lbl[i] = torch.from_numpy(lbl[i]).long()
+        return [img]+ lbl
 
 class ValToTensor:
     def __call__(self, imgmap):

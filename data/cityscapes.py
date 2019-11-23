@@ -12,10 +12,10 @@ class CityScapes(BaseDataset):
                  transform=None,
                  target_transform=None,
                  loadMemory=False,
-                 transforms=None):
+                 transforms=None,path=False):
         super(CityScapes, self).__init__(root, image_set, transform, 
                                     target_transform, transforms,
-                                    loadMemory,auxiliaryLoss)
+                                    loadMemory,path)
                                     
         assert image_set in ("train", "val") 
         dataset_file = os.path.join(root, image_set)+'.txt'

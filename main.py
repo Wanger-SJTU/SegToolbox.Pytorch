@@ -42,9 +42,9 @@ cfg_from_file(opts.config)
 cfg.TRAIN.DROPOUT_RATE = opts.ratio
 cfg.MODEL.PRETRAIN = opts.pretrain
 if cfg.MODEL.PRETRAIN:
-    cfg.EXPERIMENT_NAME += "/pretrain"
+    cfg.EXPERIMENT_NAME = "pretrain/"+cfg.EXPERIMENT_NAME
 else:
-    cfg.EXPERIMENT_NAME += "/scratch"
+    cfg.EXPERIMENT_NAME = "scratch/"+cfg.EXPERIMENT_NAME
 
 log_cfg() # record training hyper-parameters
 
@@ -53,14 +53,12 @@ assert len(cfg.EXPERIMENT_NAME) > 0
 tensorboard_dir = os.path.join(
     cfg.TENSORBOARD.DIR,
     cfg.EXPERIMENT_NAME,
-    "ratio_"+str(opts.ratio)
-)
+    "ratio_"+str(opts.ratio))
 
 checkpoint_dir = os.path.join(
    cfg.CHECKPOINT.DIR,
    cfg.EXPERIMENT_NAME,
-   "ratio_"+str(opts.ratio)
-)
+   "ratio_"+str(opts.ratio))
 
 if not os.path.exists(tensorboard_dir):
     os.makedirs(tensorboard_dir)
@@ -129,6 +127,7 @@ def train():
             probs,*others = [outputs,] if isinstance(outputs, torch.Tensor) else outputs
             optim.zero_grad()
             loss,*loss_detail = Seg_loss(probs, others, new_lbl)# pred, lbl            loss.backward()
+            loss.backward()
             optim.step()
             
             lbl_pred = probs.data.max(1)[1].cpu().detach().numpy()
@@ -150,7 +149,7 @@ def train():
                 epoch, writer.global_step, loss.data.item(), metrics[2]))
             if writer.global_step % 100 == 0:
                 # writer.variable_summaries("grad_out", 'probs', probs.grad)
-                writer.model_para_summaries(model)
+                # writer.model_para_summaries(model)
                 # writer.model_para_grad_summaries(model)
                 writer.add_image('train/img',     src_img[0].astype(np.uint8))
                 writer.add_image('train/target',  index2rgb(lbl_true[0], cfg.DATASET.NAME))
@@ -159,16 +158,15 @@ def train():
 
             if writer.global_step % cfg.TRAIN.EVAL_PERIOD == 0:
             #if writer.global_step % 1 == 0:
-                val(epoch)
+                val(epoch, save=True)
                 model.train() 
             if writer.global_step > cfg.SOLVER.MAX_ITER:
                 break
             writer.addStep()
 
-
 val_idx = 0
 best_miou = 0
-def val(epoch):
+def val(epoch,save=False):
     loader= tqdm.tqdm(val_loader, total=len(val_loader), ncols=80, leave=False)
     model.eval()
     iou = 0
@@ -192,15 +190,15 @@ def val(epoch):
             src_img  = src_img[:,:,pos[0]:shape[1]-pos[1],pos[2]:shape[2]-pos[3]]
         
         if val_idx % 50 == 0:
-            writer.add_image('val/img', src_img[0].astype(np.uint8))
-            writer.add_image('val/target', index2rgb(lbl_true[0], cfg.DATASET.NAME))
-            writer.add_image('val/pred', index2rgb(lbl_pred[0],   cfg.DATASET.NAME))
+            writer.add_image('val/img', src_img[0].astype(np.uint8),val_idx)
+            writer.add_image('val/target', index2rgb(lbl_true[0], cfg.DATASET.NAME),val_idx)
+            writer.add_image('val/pred', index2rgb(lbl_pred[0],   cfg.DATASET.NAME),val_idx)
         
         metrics = label_accuracy_score(lbl_true, lbl_pred, cfg.MODEL.NUM_CLASSES)
         
         if not loss_detail:
             for k,v in loss_detail:
-                writer.add_scalar("val/"+k,v.data.detach().item()) 
+                writer.add_scalar("val/"+k,v.data.detach().item(),val_idx) 
         writer.add_scalar("val/loss",    loss.data.detach().item(), val_idx)
         writer.add_scalar("val/acc",     metrics[0],       val_idx)
         writer.add_scalar("val/acc_cls", metrics[1],       val_idx)
@@ -212,6 +210,17 @@ def val(epoch):
         
     if cfg.CHECKPOINT.CHECKPOINT_MODEL:
         filename = 'epoch_{0}_iteration_{1}.pth'.format(
+                        str(epoch),str(writer.global_step))
+        path = os.path.join(checkpoint_dir, filename)
+        torch.save({
+            'epoch'    : epoch,
+            'iteration': writer.global_step,
+            'optim'    : optim.state_dict(),
+            'model_state_dict': model.state_dict(),
+            'iou' : iou/len(val_loader)
+        }, path)
+    if save:
+        filename = 'lastest.pth'.format(
                         str(epoch),str(writer.global_step))
         path = os.path.join(checkpoint_dir, filename)
         torch.save({
@@ -289,8 +298,13 @@ def warmUpModel():
                 writer.add_image('train/pred',    index2rgb(lbl_pred[0], cfg.DATASET.NAME))
 
     val(epoch)
+
+def load_check_point():
+    pass
+
+
 if __name__ == "__main__":
     # eval_data()
     train()
-    #val(0)
+    # val()
     writer.close()

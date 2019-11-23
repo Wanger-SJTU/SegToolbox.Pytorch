@@ -226,7 +226,7 @@ def log_cfg():
     import os
     import yaml
     file_name = os.path.join(__C.CHECKPOINT.DIR,
-                             __C.MODEL.MODEL_NAME,
+                             __C.EXPERIMENT_NAME,
                              "ratio_"+str(__C.TRAIN.DROPOUT_RATE),
         time.strftime(r"%Y_%m_%d", time.localtime())+'.yaml')
 

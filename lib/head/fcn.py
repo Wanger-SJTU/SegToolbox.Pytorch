@@ -3,12 +3,22 @@
 # @author wanger
 # @description 
 # @created 2019-10-28T15:52:24.054Z+08:00
-# @last-modified 2019-11-14T01:05:26.640Z+08:00
+# @last-modified 2019-11-21
 #
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+class SimpleHeader(nn.Module):
+    def __init__(self, cfg):
+        super(SimpleHeader, self).__init__()
+        self.upsample = nn.UpsamplingBilinear2d(scale_factor=cfg.MODEL.FACTOR)
+        self.fc = nn.Conv2d(cfg.MODEL.in_channels[-1], 
+                            cfg.MODEL.NUM_CLASS,kernel_size=1, bias=True) 
+    def forward(self, *inputs):
+        return self.upsample(self.fc(inputs[-1]))
+
 
 class FCN8s(nn.Module):
     def __init__(self, cfg):

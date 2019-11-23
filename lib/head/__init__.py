@@ -1,4 +1,7 @@
 
+from .base import SegClassifer
+from .base import Classifier
+
 from .fcn import FCN8s
 from .fcn import FCN16s
 from .fcn import FCN32s
@@ -27,8 +30,7 @@ __all__ = ['heads']
 def get_nonlocal_block(cfg):
     key = "Nonlocal{}{}D".format(cfg.NONLOCAL.TYPE, cfg.NONLOCAL.DIM)
     return nonlocal_opts[key.lower()](cfg)
-    
-
+  
 heads = {
 'none':None,
 'jpu' :JPU,
@@ -36,7 +38,9 @@ heads = {
 'fcn16s':FCN16s,
 'fcn32s':FCN32s,
 'psphead':PSPHead,
-'nonlocal': get_nonlocal_block
+'nonlocal': get_nonlocal_block,
+"segclassifer":SegClassifer,
+"classifier":Classifier
 }
 
 nonlocal_opts = {

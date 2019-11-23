@@ -4,6 +4,10 @@ watch_run.py
 .vscode/
 *__pycache__*
 *.log
+*.ipynb*
+
+fix.py
+prepare_dataset.py
 
 TODO.md
 analys.py
